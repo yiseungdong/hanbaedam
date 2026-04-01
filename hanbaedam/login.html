@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 — 한백담</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-wrap {
+      max-width: 420px;
+      margin: 80px auto 100px;
+      padding: 0 24px;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .auth-header h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .auth-header p {
+      font-size: 13px;
+      color: var(--text-lt);
+      letter-spacing: 0.04em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-md);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-family: var(--sans);
+      border: 1px solid var(--gray-lt);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus {
+      border-color: var(--green);
+    }
+    .btn--submit {
+      width: 100%;
+      padding: 14px;
+      font-size: 14px;
+      font-family: var(--sans);
+      font-weight: 500;
+      background: var(--green);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: background .2s;
+    }
+    .btn--submit:hover {
+      background: #1e4430;
+    }
+    .btn--submit:disabled {
+      background: var(--gray-lt);
+      cursor: not-allowed;
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-lt);
+    }
+    .auth-footer a {
+      color: var(--green);
+      font-weight: 500;
+    }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .alert--error {
+      background: #fdf0ef;
+      color: #c0392b;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">
+      한백담
+      <span>HANBAEDAM</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <div class="auth-wrap">
+    <div class="auth-header">
+      <h1>로그인</h1>
+      <p>한백담에 오신 것을 환영합니다</p>
+    </div>
+
+    <div class="alert alert--error" id="alert-error"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label>아이디</label>
+        <input type="text" id="username" placeholder="아이디를 입력하세요" autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn--submit" id="btn-submit">로그인</button>
+    </form>
+
+    <div class="auth-footer">
+      아직 회원이 아니신가요? <a href="register.html">회원가입</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">
+        한백담
+        <span>HANBAEDAM · 韓白潭</span>
+      </div>
+      <div class="footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">
+      &copy; 2025 HANBAEDAM. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const form = document.getElementById('login-form');
+    const alertError = document.getElementById('alert-error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertError.style.display = 'none';
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        alertError.textContent = '아이디와 비밀번호를 입력하세요';
+        alertError.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = '로그인 중...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alertError.textContent = data.error || '로그인에 실패했습니다';
+          alertError.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '로그인';
+          return;
+        }
+        localStorage.setItem('hb_token', data.token);
+        localStorage.setItem('hb_user', JSON.stringify(data.user));
+        location.href = 'index.html';
+      } catch {
+        alertError.textContent = '서버 오류가 발생했습니다';
+        alertError.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '로그인';
+      }
+    });
+  </script>
+</body>
+</html>

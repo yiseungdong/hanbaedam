@@ -60,7 +60,8 @@ async function initDB() {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT DEFAULT '',
       password TEXT,
       name TEXT,
       phone TEXT,

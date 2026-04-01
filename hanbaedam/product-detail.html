@@ -99,7 +99,7 @@
       const imgEl = document.getElementById('detail-img');
       imgEl.style.background = p.color;
       if (p.image) {
-        imgEl.innerHTML = `<img src="${p.image}" alt="${p.name}">`;
+        imgEl.innerHTML = `<img src="${p.image}" alt="${p.name}" onerror="this.remove()">`;
       }
       document.getElementById('detail-badge').textContent = `${p.badge} · HANBAEDAM`;
       document.getElementById('detail-name').textContent = p.name;

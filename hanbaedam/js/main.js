@@ -146,7 +146,7 @@ const Cart = {
 /* ── 상품 카드 렌더 ── */
 function renderProductCard(p) {
   const imgContent = p.image
-    ? `<img src="${p.image}" alt="${p.name}">`
+    ? `<img src="${p.image}" alt="${p.name}" onerror="this.remove()">`
     : '';
   return `
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
@@ -195,5 +195,29 @@ function isGiftSeason() {
   return false;
 }
 
+/* ── 로그인 상태 NAV 업데이트 ── */
+function updateNav() {
+  const user = JSON.parse(localStorage.getItem('hb_user') || 'null');
+  const navRight = document.querySelector('.nav__right');
+  if (!navRight) return;
+
+  if (user) {
+    navRight.innerHTML = `
+      <span style="font-size:13px;color:var(--text-md);">${user.name}님</span>
+      <a href="mypage.html" style="font-size:13px;color:var(--green);">마이페이지</a>
+      <button onclick="logout()" style="font-size:12px;color:var(--gray);border:none;background:none;cursor:pointer;font-family:var(--sans);">로그아웃</button>
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>`;
+  }
+}
+
+function logout() {
+  localStorage.removeItem('hb_token');
+  localStorage.removeItem('hb_user');
+  location.href = 'index.html';
+}
+
 /* ── 초기화 ── */
-document.addEventListener('DOMContentLoaded', () => Cart.updateBadge());
+document.addEventListener('DOMContentLoaded', () => {
+  updateNav();
+  Cart.updateBadge();
+});

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원가입 — 한백담</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-wrap {
+      max-width: 460px;
+      margin: 60px auto 80px;
+      padding: 0 24px;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .auth-header h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .auth-header p {
+      font-size: 13px;
+      color: var(--text-lt);
+      letter-spacing: 0.04em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-md);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .form-group label .required {
+      color: #c0392b;
+      margin-left: 2px;
+    }
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+    .form-row input {
+      flex: 1;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 13px;
+      font-family: var(--sans);
+      border: 1px solid var(--gray-lt);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus {
+      border-color: var(--green);
+    }
+    .form-group input.error {
+      border-color: #c0392b;
+    }
+    .form-group input.success {
+      border-color: var(--green);
+    }
+    .btn--check {
+      flex-shrink: 0;
+      padding: 11px 16px;
+      font-size: 12px;
+      font-family: var(--sans);
+      background: var(--bg2);
+      color: var(--text-md);
+      border: 1px solid var(--gray-lt);
+      border-radius: var(--radius);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+    .btn--check:hover {
+      background: var(--green);
+      color: var(--bg);
+      border-color: var(--green);
+    }
+    .form-msg {
+      font-size: 11px;
+      margin-top: 5px;
+      letter-spacing: 0.02em;
+    }
+    .form-msg--error {
+      color: #c0392b;
+    }
+    .form-msg--success {
+      color: var(--green);
+    }
+
+    /* 비밀번호 강도 바 */
+    .pw-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+      align-items: center;
+    }
+    .pw-strength__bar {
+      display: flex;
+      gap: 3px;
+      flex: 1;
+    }
+    .pw-strength__seg {
+      height: 4px;
+      flex: 1;
+      background: var(--bg2);
+      border-radius: 2px;
+      transition: background .3s;
+    }
+    .pw-strength__label {
+      font-size: 11px;
+      color: var(--text-lt);
+      margin-left: 8px;
+      min-width: 24px;
+    }
+    .pw-strength[data-level="1"] .pw-strength__seg:nth-child(1) { background: #c0392b; }
+    .pw-strength[data-level="2"] .pw-strength__seg:nth-child(1),
+    .pw-strength[data-level="2"] .pw-strength__seg:nth-child(2) { background: var(--beige); }
+    .pw-strength[data-level="3"] .pw-strength__seg:nth-child(1),
+    .pw-strength[data-level="3"] .pw-strength__seg:nth-child(2),
+    .pw-strength[data-level="3"] .pw-strength__seg:nth-child(3) { background: var(--green); }
+
+    /* 약관 체크 */
+    .agree-group {
+      margin-bottom: 20px;
+    }
+    .agree-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: var(--text-md);
+    }
+    .agree-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+
+    .btn--submit {
+      width: 100%;
+      padding: 14px;
+      font-size: 14px;
+      font-family: var(--sans);
+      font-weight: 500;
+      background: var(--green);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: background .2s;
+    }
+    .btn--submit:hover {
+      background: #1e4430;
+    }
+    .btn--submit:disabled {
+      background: var(--gray-lt);
+      cursor: not-allowed;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-lt);
+    }
+    .auth-footer a {
+      color: var(--green);
+      font-weight: 500;
+    }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* 에러 알림 */
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .alert--error {
+      background: #fdf0ef;
+      color: #c0392b;
+      border: 1px solid #f5c6cb;
+    }
+    .alert--success {
+      background: #e8f5e9;
+      color: var(--green);
+      border: 1px solid #c8e6c9;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">
+      한백담
+      <span>HANBAEDAM</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <div class="auth-wrap">
+    <div class="auth-header">
+      <h1>회원가입</h1>
+      <p>한백담 회원이 되어 신선한 홍천 농산물을 만나보세요</p>
+    </div>
+
+    <div class="alert alert--error" id="alert-error"></div>
+    <div class="alert alert--success" id="alert-success"></div>
+
+    <form id="register-form" novalidate>
+      <!-- 아이디 -->
+      <div class="form-group">
+        <label>아이디 <span class="required">*</span></label>
+        <div class="form-row">
+          <input type="text" id="username" placeholder="영문, 숫자 4~20자" maxlength="20" autocomplete="username">
+          <button type="button" class="btn--check" id="btn-check-username">중복확인</button>
+        </div>
+        <div class="form-msg" id="username-msg"></div>
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="form-group">
+        <label>비밀번호 <span class="required">*</span></label>
+        <input type="password" id="password" placeholder="8자 이상" autocomplete="new-password">
+        <div class="pw-strength" id="pw-strength" data-level="0">
+          <div class="pw-strength__bar">
+            <div class="pw-strength__seg"></div>
+            <div class="pw-strength__seg"></div>
+            <div class="pw-strength__seg"></div>
+          </div>
+          <span class="pw-strength__label" id="pw-strength-label"></span>
+        </div>
+      </div>
+
+      <!-- 비밀번호 확인 -->
+      <div class="form-group">
+        <label>비밀번호 확인 <span class="required">*</span></label>
+        <input type="password" id="password-confirm" placeholder="비밀번호를 다시 입력하세요" autocomplete="new-password">
+        <div class="form-msg" id="pw-confirm-msg"></div>
+      </div>
+
+      <!-- 이름 -->
+      <div class="form-group">
+        <label>이름 <span class="required">*</span></label>
+        <input type="text" id="name" placeholder="실명을 입력하세요" autocomplete="name">
+      </div>
+
+      <!-- 휴대폰 번호 -->
+      <div class="form-group">
+        <label>휴대폰 번호 <span class="required">*</span></label>
+        <input type="tel" id="phone" placeholder="010-0000-0000" maxlength="13" autocomplete="tel">
+      </div>
+
+      <!-- 이메일 -->
+      <div class="form-group">
+        <label>이메일 <span style="font-size:11px;color:var(--gray-lt);font-weight:300;">(선택)</span></label>
+        <input type="email" id="email" placeholder="example@email.com" autocomplete="email">
+      </div>
+
+      <!-- 약관 동의 -->
+      <div class="agree-group">
+        <label class="agree-item">
+          <input type="checkbox" id="agree-terms">
+          <span>이용약관에 동의합니다 <span class="required">*</span></span>
+        </label>
+        <label class="agree-item">
+          <input type="checkbox" id="agree-privacy">
+          <span>개인정보처리방침에 동의합니다 <span class="required">*</span></span>
+        </label>
+      </div>
+
+      <!-- 가입 버튼 -->
+      <button type="submit" class="btn--submit" id="btn-submit">가입하기</button>
+    </form>
+
+    <div class="auth-footer">
+      이미 회원이신가요? <a href="login.html">로그인</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">
+        한백담
+        <span>HANBAEDAM · 韓白潭</span>
+      </div>
+      <div class="footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">공지사항</a>
+        <a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">
+      상호: 한백담 | 대표자: ○○○ | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제0000-강원홍천-0000호<br>
+      주소: 강원특별자치도 홍천군 ○○면 ○○로 000 | 고객센터: 000-0000-0000 | 이메일: hello@hanbaedam.com<br>
+      &copy; 2025 HANBAEDAM. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const form = document.getElementById('register-form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const pwConfirmInput = document.getElementById('password-confirm');
+    const phoneInput = document.getElementById('phone');
+    const btnCheckUsername = document.getElementById('btn-check-username');
+    const alertError = document.getElementById('alert-error');
+    const alertSuccess = document.getElementById('alert-success');
+
+    let usernameChecked = false;
+    let usernameAvailable = false;
+
+    // 아이디 입력 시 중복확인 초기화
+    usernameInput.addEventListener('input', () => {
+      usernameChecked = false;
+      usernameAvailable = false;
+      setMsg('username-msg', '', '');
+      usernameInput.classList.remove('success', 'error');
+    });
+
+    // 아이디 중복확인
+    btnCheckUsername.addEventListener('click', async () => {
+      const username = usernameInput.value.trim();
+      if (!username) {
+        setMsg('username-msg', '아이디를 입력하세요', 'error');
+        return;
+      }
+      if (!/^[a-zA-Z0-9]{4,20}$/.test(username)) {
+        setMsg('username-msg', '영문, 숫자 4~20자로 입력하세요', 'error');
+        usernameInput.classList.add('error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/check-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (data.available) {
+          usernameChecked = true;
+          usernameAvailable = true;
+          setMsg('username-msg', '사용 가능한 아이디입니다', 'success');
+          usernameInput.classList.remove('error');
+          usernameInput.classList.add('success');
+        } else {
+          usernameChecked = true;
+          usernameAvailable = false;
+          setMsg('username-msg', data.error || '사용할 수 없는 아이디입니다', 'error');
+          usernameInput.classList.remove('success');
+          usernameInput.classList.add('error');
+        }
+      } catch {
+        setMsg('username-msg', '서버 오류가 발생했습니다', 'error');
+      }
+    });
+
+    // 비밀번호 강도 체크
+    passwordInput.addEventListener('input', () => {
+      const pw = passwordInput.value;
+      const strength = document.getElementById('pw-strength');
+      const label = document.getElementById('pw-strength-label');
+
+      if (!pw) {
+        strength.dataset.level = '0';
+        label.textContent = '';
+        return;
+      }
+
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) score++;
+
+      strength.dataset.level = String(score);
+      const labels = ['', '약함', '보통', '강함'];
+      label.textContent = labels[score] || '';
+
+      checkPwMatch();
+    });
+
+    // 비밀번호 확인 실시간 비교
+    pwConfirmInput.addEventListener('input', checkPwMatch);
+
+    function checkPwMatch() {
+      const pw = passwordInput.value;
+      const confirm = pwConfirmInput.value;
+      if (!confirm) {
+        setMsg('pw-confirm-msg', '', '');
+        pwConfirmInput.classList.remove('success', 'error');
+        return;
+      }
+      if (pw === confirm) {
+        setMsg('pw-confirm-msg', '비밀번호가 일치합니다', 'success');
+        pwConfirmInput.classList.remove('error');
+        pwConfirmInput.classList.add('success');
+      } else {
+        setMsg('pw-confirm-msg', '비밀번호가 일치하지 않습니다', 'error');
+        pwConfirmInput.classList.remove('success');
+        pwConfirmInput.classList.add('error');
+      }
+    }
+
+    // 전화번호 자동 하이픈
+    phoneInput.addEventListener('input', () => {
+      let v = phoneInput.value.replace(/[^0-9]/g, '');
+      if (v.length > 11) v = v.slice(0, 11);
+      if (v.length > 7) {
+        phoneInput.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7);
+      } else if (v.length > 3) {
+        phoneInput.value = v.slice(0, 3) + '-' + v.slice(3);
+      } else {
+        phoneInput.value = v;
+      }
+    });
+
+    // 메시지 헬퍼
+    function setMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'form-msg' + (type ? ' form-msg--' + type : '');
+    }
+
+    function showAlert(type, msg) {
+      alertError.style.display = 'none';
+      alertSuccess.style.display = 'none';
+      if (type === 'error') {
+        alertError.textContent = msg;
+        alertError.style.display = 'block';
+      } else {
+        alertSuccess.textContent = msg;
+        alertSuccess.style.display = 'block';
+      }
+    }
+
+    // 폼 제출
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertError.style.display = 'none';
+      alertSuccess.style.display = 'none';
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const passwordConfirm = pwConfirmInput.value;
+      const name = document.getElementById('name').value.trim();
+      const phone = phoneInput.value.trim();
+      const email = document.getElementById('email').value.trim();
+      const agreeTerms = document.getElementById('agree-terms').checked;
+      const agreePrivacy = document.getElementById('agree-privacy').checked;
+
+      // 유효성 검사
+      if (!/^[a-zA-Z0-9]{4,20}$/.test(username)) {
+        showAlert('error', '아이디는 영문, 숫자 4~20자로 입력하세요');
+        return;
+      }
+      if (!usernameChecked || !usernameAvailable) {
+        showAlert('error', '아이디 중복확인을 해주세요');
+        return;
+      }
+      if (password.length < 8) {
+        showAlert('error', '비밀번호는 8자 이상이어야 합니다');
+        return;
+      }
+      if (password !== passwordConfirm) {
+        showAlert('error', '비밀번호가 일치하지 않습니다');
+        return;
+      }
+      if (!name) {
+        showAlert('error', '이름을 입력하세요');
+        return;
+      }
+      if (!/^010-\d{4}-\d{4}$/.test(phone)) {
+        showAlert('error', '올바른 휴대폰 번호를 입력하세요');
+        return;
+      }
+      if (!agreeTerms) {
+        showAlert('error', '이용약관에 동의해주세요');
+        return;
+      }
+      if (!agreePrivacy) {
+        showAlert('error', '개인정보처리방침에 동의해주세요');
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = '가입 중...';
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, name, phone, email })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showAlert('error', data.error || '가입에 실패했습니다');
+          btn.disabled = false;
+          btn.textContent = '가입하기';
+          return;
+        }
+        showAlert('success', '가입 완료! 로그인 페이지로 이동합니다.');
+        setTimeout(() => {
+          location.href = 'login.html';
+        }, 1500);
+      } catch {
+        showAlert('error', '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        btn.disabled = false;
+        btn.textContent = '가입하기';
+      }
+    });
+  </script>
+</body>
+</html>

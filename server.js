@@ -41,6 +41,12 @@ const upload = multer({
 
 // tags JSON 파싱 헬퍼
 function parseProduct(row) {
+  // 이미지 파일이 실제 존재하는지 검증
+  let image = row.image || '';
+  if (image) {
+    const imgPath = path.join(__dirname, image);
+    if (!fs.existsSync(imgPath)) image = '';
+  }
   return {
     id: row.id,
     name: row.name,
@@ -53,7 +59,7 @@ function parseProduct(row) {
     color: row.color,
     tags: JSON.parse(row.tags || '[]'),
     stock: row.stock,
-    image: row.image,
+    image: image,
     naver_id: row.naver_id,
     coupang_id: row.coupang_id,
     created_at: row.created_at
@@ -190,35 +196,54 @@ app.delete('/api/photos/:filename', (req, res) => {
 
 // ── 회원 API ──
 
+app.post('/api/auth/check-username', (req, res) => {
+  const db = getDB();
+  const { username } = req.body;
+  if (!username || username.length < 4 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
+    return res.status(400).json({ available: false, error: '아이디는 영문, 숫자 4~20자여야 합니다' });
+  }
+  const existing = db.exec(`SELECT id FROM users WHERE username = '${username.replace(/'/g, "''")}'`);
+  if (existing.length && existing[0].values.length) {
+    return res.json({ available: false, error: '이미 사용중인 아이디입니다' });
+  }
+  res.json({ available: true, message: '사용 가능한 아이디입니다' });
+});
+
 app.post('/api/auth/register', async (req, res) => {
   const db = getDB();
-  const { email, password, name, phone } = req.body;
-  const existing = db.exec(`SELECT id FROM users WHERE email = '${email.replace(/'/g, "''")}'`);
+  const { username, password, name, phone, email } = req.body;
+  if (!username || username.length < 4 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
+    return res.status(400).json({ error: '아이디는 영문, 숫자 4~20자여야 합니다' });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: '비밀번호는 8자 이상이어야 합니다' });
+  }
+  const existing = db.exec(`SELECT id FROM users WHERE username = '${username.replace(/'/g, "''")}'`);
   if (existing.length && existing[0].values.length) {
-    return res.status(409).json({ error: '이미 등록된 이메일입니다' });
+    return res.status(409).json({ error: '이미 사용중인 아이디입니다' });
   }
   const hashed = await bcrypt.hash(password, 10);
-  const stmt = db.prepare('INSERT INTO users (email, password, name, phone) VALUES (?, ?, ?, ?)');
-  stmt.run([email, hashed, name, phone]);
+  const stmt = db.prepare('INSERT INTO users (username, email, password, name, phone) VALUES (?, ?, ?, ?, ?)');
+  stmt.run([username, email || '', hashed, name, phone]);
   stmt.free();
   saveDB();
   const userId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
-  const token = jwt.sign({ id: userId, email, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
-  res.status(201).json({ token, user: { id: userId, email, name } });
+  const token = jwt.sign({ id: userId, username, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
+  res.status(201).json({ token, user: { id: userId, username, name } });
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const db = getDB();
-  const { email, password } = req.body;
-  const result = db.exec(`SELECT * FROM users WHERE email = '${email.replace(/'/g, "''")}'`);
+  const { username, password } = req.body;
+  const result = db.exec(`SELECT * FROM users WHERE username = '${username.replace(/'/g, "''")}'`);
   if (!result.length || !result[0].values.length) {
-    return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다' });
+    return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다' });
   }
   const user = rowToObj(result[0].columns, result[0].values)[0];
   const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다' });
-  const token = jwt.sign({ id: user.id, email: user.email, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
+  if (!valid) return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다' });
+  const token = jwt.sign({ id: user.id, username: user.username, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({ token, user: { id: user.id, username: user.username, name: user.name } });
 });
 
 // ── 어드민 API ──
