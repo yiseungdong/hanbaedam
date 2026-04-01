@@ -120,6 +120,24 @@
         <!-- 배송지 정보 -->
         <div class="checkout-section">
           <div class="checkout-section__title">배송지 정보</div>
+          <div class="form-row" style="margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-md);cursor:pointer;">
+              <input type="checkbox" id="sendToOther" onchange="toggleRecipient()" style="accent-color:var(--green);">
+              다른 사람에게 보내기
+            </label>
+          </div>
+          <div id="otherRecipientFields" style="display:none;margin-bottom:16px;">
+            <div class="form-row form-row--half">
+              <div>
+                <label class="form-label">수령인</label>
+                <input class="form-input" type="text" id="recipientName" placeholder="수령인 이름">
+              </div>
+              <div>
+                <label class="form-label">수령인 연락처</label>
+                <input class="form-input" type="tel" id="recipientPhone" placeholder="010-0000-0000">
+              </div>
+            </div>
+          </div>
           <div class="form-row">
             <label class="form-label">우편번호</label>
             <div class="addr-row">
@@ -258,21 +276,34 @@
       el.querySelector('input[type="radio"]').checked = true;
     }
 
+    /* ── 다른 사람에게 보내기 토글 ── */
+    function toggleRecipient() {
+      const checked = document.getElementById('sendToOther').checked;
+      document.getElementById('otherRecipientFields').style.display = checked ? 'block' : 'none';
+    }
+
     /* ── 주문 제출 ── */
     async function submitOrder() {
-      const name = document.getElementById('buyer-name').value.trim();
-      const phone = document.getElementById('buyer-phone').value.trim();
-      const email = document.getElementById('buyer-email').value.trim();
+      const ordererName  = document.getElementById('buyer-name').value.trim();
+      const ordererPhone = document.getElementById('buyer-phone').value.trim();
       const postcode = document.getElementById('postcode').value.trim();
       const address = document.getElementById('address').value.trim();
       const addressDetail = document.getElementById('address-detail').value.trim();
       const memo = document.getElementById('memo').value.trim();
       const agree = document.getElementById('agree-check').checked;
 
-      if (!name) return alert('이름을 입력해주세요.');
-      if (!phone) return alert('연락처를 입력해주세요.');
+      if (!ordererName || !ordererPhone) return alert('주문자 이름과 연락처를 입력해주세요.');
       if (!postcode || !address) return alert('주소를 검색해주세요.');
       if (!agree) return alert('이용약관에 동의해주세요.');
+
+      // 수령인 결정: 다른 사람에게 보내기 체크 여부에 따라
+      const sendToOther = document.getElementById('sendToOther').checked;
+      const recipientName  = sendToOther ? document.getElementById('recipientName').value.trim() : ordererName;
+      const recipientPhone = sendToOther ? document.getElementById('recipientPhone').value.trim() : ordererPhone;
+
+      if (sendToOther && (!recipientName || !recipientPhone)) {
+        return alert('수령인 이름과 연락처를 입력해주세요.');
+      }
 
       const cartItems = Cart.get();
       if (!cartItems.length) { alert('장바구니가 비어있습니다.'); return; }
@@ -291,12 +322,12 @@
           headers,
           body: JSON.stringify({
             user_id: user ? user.id : null,
-            guest_name: name,
-            guest_phone: phone,
+            guest_name: ordererName,
+            guest_phone: ordererPhone,
             items: cartItems.map(i => ({ id: i.id, qty: i.qty })),
             total_price: totalPrice,
-            recipient_name: name,
-            recipient_phone: phone,
+            recipient_name: recipientName,
+            recipient_phone: recipientPhone,
             address: fullAddress,
             address_detail: addressDetail,
             memo
