@@ -10,11 +10,11 @@
   --green-mid:#7BA87C;
   --beige:    #C9A96D;
   --dark:     #2C2B28;
-  --gray:     #9A9485;
+  --gray:     #6B6860;
   --gray-lt:  #D8D3C8;
-  --text:     #2C2B28;
-  --text-md:  #5A5850;
-  --text-lt:  #9A9485;
+  --text:     #1A1A18;
+  --text-md:  #3D3C38;
+  --text-lt:  #6B6860;
   --radius:   4px;
   --serif:    'Noto Serif KR', serif;
   --sans:     'Noto Sans KR', sans-serif;
@@ -47,7 +47,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.5; }
 .nav__logo { font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--green); letter-spacing: 0.06em; }
 .nav__logo span { display: block; font-size: 10px; font-weight: 300; color: var(--gray); letter-spacing: 0.2em; font-family: var(--sans); margin-top: 1px; }
 .nav__links { display: flex; gap: 32px; list-style: none; }
-.nav__links a { font-size: 13px; color: var(--text-md); letter-spacing: 0.04em; transition: color .2s; }
+.nav__links a { font-size: 13px; color: #3D3C38; letter-spacing: 0.04em; transition: color .2s; }
 .nav__links a:hover { color: var(--green); }
 .nav__right { display: flex; align-items: center; gap: 16px; }
 .nav__cart { font-size: 12px; color: var(--green); border: 0.5px solid var(--green); padding: 7px 16px; border-radius: 2px; letter-spacing: 0.06em; transition: all .2s; }
@@ -91,8 +91,8 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.5; }
   font-size: 10px; padding: 4px 9px; border-radius: 2px;
   letter-spacing: 0.1em; font-weight: 400;
 }
-.product-card__name { font-size: 14px; font-weight: 400; margin-bottom: 4px; letter-spacing: 0.02em; }
-.product-card__desc { font-size: 12px; color: var(--gray); font-weight: 300; line-height: 1.65; margin-bottom: 8px; }
+.product-card__name { font-size: 14px; font-weight: 500; margin-bottom: 4px; letter-spacing: 0.02em; }
+.product-card__desc { font-size: 12px; color: var(--text-md); font-weight: 400; line-height: 1.65; margin-bottom: 8px; }
 .product-card__price { font-size: 14px; font-weight: 500; }
 
 /* ── PRODUCER CARD ── */
