@@ -18,6 +18,8 @@
     }
     .filter-btn.active, .filter-btn:hover { background: var(--green); color: var(--bg); border-color: var(--green); }
     .product-grid-full { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .product-grid-full .product-card__img { width: 100%; aspect-ratio: 4/5; position: relative; overflow: hidden; }
+    .product-grid-full .product-card__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
     @media (max-width: 1024px) { .product-grid-full { grid-template-columns: repeat(3,1fr); } }
     @media (max-width: 768px) { .product-grid-full { grid-template-columns: repeat(2,1fr); } }
   </style>

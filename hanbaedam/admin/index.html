@@ -818,11 +818,10 @@
   const uploadZone = document.getElementById('upload-zone');
   const photoInput = document.getElementById('photo-input');
 
-  // 브라우저 기본 파일 열기 동작 완전 차단 (body 레벨)
+  // 브라우저 기본 파일 열기 동작 차단 (body 레벨 — stopPropagation 제거로 드롭존 이벤트 전파 허용)
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     document.body.addEventListener(eventName, (e) => {
       e.preventDefault();
-      e.stopPropagation();
     }, false);
   });
 
