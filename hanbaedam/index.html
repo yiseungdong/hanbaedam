@@ -285,7 +285,9 @@
     fetch('/api/products')
       .then(res => res.json())
       .then(products => {
-        console.log('[index.html] API 응답 데이터:', products.map(p => ({ id: p.id, name: p.name, image: p.image })));
+        products.forEach(p => {
+          if (!p.image) p.image = '';
+        });
         renderHome(products);
       })
       .catch(() => renderHome(PRODUCTS));

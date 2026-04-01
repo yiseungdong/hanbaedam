@@ -145,19 +145,18 @@ const Cart = {
 
 /* ── 상품 카드 렌더 ── */
 function renderProductCard(p) {
-  const bg = p.image ? 'transparent' : p.color;
-  const imgHtml = p.image
-    ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.parentElement.style.background='${p.color}';this.remove();">`
+  const imgContent = p.image
+    ? `<img src="${p.image}" alt="${p.name}">`
     : '';
   return `
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
-      <div class="product-card__img" style="background:${bg};">
-        ${imgHtml}
+      <div class="product-card__img" style="background:${p.color || '#EEEADF'};">
+        ${imgContent}
         <div class="product-card__badge">${p.badge}</div>
       </div>
       <div class="product-card__name">${p.name}</div>
       <div class="product-card__desc">${p.desc}</div>
-      <div class="product-card__price">${p.price.toLocaleString()}원 / ${p.unit}</div>
+      <div class="product-card__price">${Number(p.price).toLocaleString()}원 / ${p.unit}</div>
     </div>`;
 }
 
