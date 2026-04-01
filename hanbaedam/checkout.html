@@ -344,10 +344,29 @@
       const cartItems = Cart.get();
       if (!cartItems.length) { alert('장바구니가 비어있습니다.'); return; }
 
+      // 상품 상세정보 조회하여 items에 이름/가격 포함
+      let enrichedItems;
+      try {
+        const prodRes = await fetch('/api/products');
+        const products = await prodRes.json();
+        enrichedItems = cartItems.map(c => {
+          const p = products.find(x => x.id === c.id);
+          return {
+            id: c.id,
+            name: p ? p.name : '상품',
+            price: p ? p.price : 0,
+            quantity: c.qty || 1
+          };
+        });
+      } catch {
+        enrichedItems = cartItems.map(c => ({ id: c.id, name: '상품', price: 0, quantity: c.qty || 1 }));
+      }
+
+      const totalPrice = enrichedItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+
       // 배송지 저장 (체크박스 체크된 경우)
       await maybeSaveAddress(postcode, address, addressDetail);
 
-      const totalPrice = Cart.total();
       const fullAddress = `(${postcode}) ${address}`;
       const token = localStorage.getItem('hb_token');
       const user = JSON.parse(localStorage.getItem('hb_user') || 'null');
@@ -363,7 +382,7 @@
             user_id: user ? user.id : null,
             guest_name: ordererName,
             guest_phone: ordererPhone,
-            items: cartItems.map(i => ({ id: i.id, qty: i.qty })),
+            items: enrichedItems,
             total_price: totalPrice,
             recipient_name: recipientName,
             recipient_phone: recipientPhone,

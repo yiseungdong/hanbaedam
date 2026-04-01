@@ -263,7 +263,7 @@
       container.innerHTML = orders.map(o => {
         const items = Array.isArray(o.items) ? o.items : [];
         const itemSummary = items.length
-          ? `${items[0].name || '상품'}${items.length > 1 ? ' 외 ' + (items.length - 1) + '건' : ''}`
+          ? `${items[0].name || items[0].product_name || '상품'}${items.length > 1 ? ' 외 ' + (items.length - 1) + '건' : ''}`
           : '-';
         const orderDate = o.created_at ? new Date(o.created_at).toLocaleDateString('ko-KR') : '';
 
@@ -296,8 +296,8 @@
       const items = Array.isArray(o.items) ? o.items : [];
       const itemsHtml = items.map(i =>
         `<tr>
-          <td style="padding:6px 0;font-size:13px;">${i.name || '-'}</td>
-          <td style="padding:6px 8px;font-size:13px;text-align:center;">${i.qty || 1}개</td>
+          <td style="padding:6px 0;font-size:13px;">${i.name || i.product_name || '-'}</td>
+          <td style="padding:6px 8px;font-size:13px;text-align:center;">${i.quantity || i.qty || 1}개</td>
           <td style="padding:6px 0;font-size:13px;text-align:right;">${Number(i.price || 0).toLocaleString()}원</td>
         </tr>`
       ).join('');
