@@ -247,7 +247,7 @@ app.get('/api/orders/my', (req, res) => {
   const user = verifyToken(req);
   if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
   const db = getDB();
-  const result = db.exec(`SELECT id, order_number, items, total_price, status, courier, tracking_number, created_at FROM orders WHERE user_id=${Number(user.id)} ORDER BY created_at DESC`);
+  const result = db.exec(`SELECT id, order_number, items, total_price, status, courier, tracking_number, recipient_name, recipient_phone, address, address_detail, memo, created_at FROM orders WHERE user_id=${Number(user.id)} ORDER BY created_at DESC`);
   if (!result.length) return res.json([]);
   const orders = rowToObj(result[0].columns, result[0].values).map(o => {
     o.items = JSON.parse(o.items || '[]');
@@ -473,6 +473,22 @@ app.delete('/api/reviews/:id', (req, res) => {
   db.run(`DELETE FROM reviews WHERE id = ${reviewId}`);
   saveDB();
   res.json({ message: '후기 삭제 완료' });
+});
+
+// ── 주문 취소 (결제대기 상태만) ──
+
+app.patch('/api/orders/:id/cancel', (req, res) => {
+  const user = verifyToken(req);
+  if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
+  const db = getDB();
+  const id = Number(req.params.id);
+  const result = db.exec(`SELECT status FROM orders WHERE id=${id} AND user_id=${Number(user.id)}`);
+  if (!result.length || !result[0].values.length) return res.status(404).json({ error: '주문을 찾을 수 없습니다.' });
+  const status = result[0].values[0][0];
+  if (status !== '결제대기') return res.status(400).json({ error: '결제대기 상태만 취소 가능합니다.' });
+  db.run(`UPDATE orders SET status='취소', updated_at=CURRENT_TIMESTAMP WHERE id=${id}`);
+  saveDB();
+  res.json({ success: true });
 });
 
 // ── 어드민 API ──

@@ -101,24 +101,34 @@
     .btn--pay:hover { background: #1e4430; }
     .btn--pay:disabled { background: var(--gray-lt); cursor: not-allowed; }
 
-    /* 주문 내역 탭 */
-    .order-history-item {
+    /* 주문 내역 카드 */
+    .my-order-card {
       border: 0.5px solid var(--gray-lt); border-radius: var(--radius);
-      padding: 20px 24px; margin-bottom: 16px;
+      padding: 20px 24px; margin-bottom: 16px; cursor: pointer; transition: box-shadow .2s;
     }
-    .order-history-item__header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px;
+    .my-order-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .my-order-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+    .my-order-number { font-size: 13px; font-weight: 500; color: var(--green); }
+    .my-order-date { font-size: 11px; color: var(--gray); margin-top: 2px; }
+    .my-order-summary { margin-top: 10px; font-size: 13px; color: var(--text-md); }
+    .my-order-price { margin-top: 4px; font-size: 14px; font-weight: 500; }
+    .my-order-actions { margin-top: 12px; display: flex; gap: 8px; }
+    .btn-track {
+      padding: 6px 14px; background: var(--green); color: var(--bg); border: none;
+      border-radius: 2px; font-size: 12px; cursor: pointer; text-decoration: none;
+      display: inline-block; font-family: var(--sans); letter-spacing: 0.04em;
     }
-    .order-history-item__number { font-size: 13px; font-weight: 500; }
-    .order-history-item__date { font-size: 12px; color: var(--gray); }
-    .order-history-item__status {
-      font-size: 11px; padding: 4px 10px; border-radius: 2px;
-      letter-spacing: 0.06em;
+    .btn-cancel {
+      padding: 6px 14px; background: var(--bg); color: #A32D2D; border: 0.5px solid #A32D2D;
+      border-radius: 2px; font-size: 12px; cursor: pointer; font-family: var(--sans);
     }
-    .status--pending { background: #FFF3CD; color: #856404; }
-    .status--shipping { background: #D1ECF1; color: #0C5460; }
-    .status--done { background: #D4EDDA; color: #155724; }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 400; letter-spacing: 0.06em; }
+    .status-결제대기 { background: #FAEEDA; color: #633806; }
+    .status-결제완료 { background: #D6EAF8; color: #1B4F72; }
+    .status-배송준비 { background: #F3E5F5; color: #6A1B9A; }
+    .status-배송중   { background: #EAF3DE; color: #27500A; }
+    .status-배송완료 { background: var(--bg2); color: var(--gray); }
+    .status-취소     { background: #FDEDEC; color: #A32D2D; }
     .order-history-empty {
       text-align: center; padding: 60px 0; color: var(--gray); font-size: 14px;
     }
@@ -172,6 +182,15 @@
     <div id="order-history" style="margin-top:8px;"></div>
   </div>
 
+  <!-- 주문 상세 모달 -->
+  <div id="myOrderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:var(--bg);border-radius:8px;padding:32px;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;position:relative;">
+      <button onclick="closeMyOrderModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);">✕</button>
+      <div style="font-family:var(--serif);font-size:20px;font-weight:400;margin-bottom:20px;">주문 상세</div>
+      <div id="myOrderModalContent"></div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer__top">
@@ -215,52 +234,133 @@
       '한진택배': 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&schLang=KR&wblnumText2='
     };
 
+    let myOrders = [];
+
     // 주문내역 로드
-    function loadOrderHistory() {
+    async function loadMyOrders() {
       const container = document.getElementById('order-history');
       const token = localStorage.getItem('hb_token');
       if (!token) {
         container.innerHTML = '<div class="order-history-empty">로그인이 필요합니다</div>';
         return;
       }
-      fetch('/api/orders/my', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.json())
-        .then(orders => {
-          if (!orders.length) {
-            container.innerHTML = '<div class="order-history-empty">주문 내역이 없습니다</div>';
-            return;
-          }
-          container.innerHTML = orders.map(o => {
-            const statusClass = o.status === '배송완료' ? 'status--done'
-              : o.status === '배송중' ? 'status--shipping' : 'status--pending';
-            const items = Array.isArray(o.items) ? o.items : [];
-            const itemNames = items.map(i => i.name || '상품').join(', ');
-            const trackingBtn = o.tracking_number && o.courier
-              ? `<a href="${COURIER_URLS[o.courier] || '#'}${o.tracking_number}" target="_blank"
-                   style="display:inline-block;margin-top:8px;padding:6px 14px;background:var(--green);color:var(--bg);border-radius:2px;text-decoration:none;font-size:12px;letter-spacing:0.04em;">
-                   배송조회 (${o.courier})</a>` : '';
-            return `
-              <div class="order-history-item">
-                <div class="order-history-item__header">
-                  <div>
-                    <div class="order-history-item__number">${o.order_number}</div>
-                    <div class="order-history-item__date">${(o.created_at || '').split('T')[0]}</div>
-                  </div>
-                  <span class="order-history-item__status ${statusClass}">${o.status}</span>
-                </div>
-                <div style="font-size:13px;color:var(--text-md);">${itemNames}</div>
-                <div style="font-size:14px;font-weight:500;margin-top:8px;">${Number(o.total_price).toLocaleString()}원</div>
-                ${trackingBtn}
-              </div>`;
-          }).join('');
-        })
-        .catch(() => {
-          container.innerHTML = '<div class="order-history-empty">주문 내역을 불러올 수 없습니다</div>';
+      try {
+        const res = await fetch('/api/orders/my', { headers: { 'Authorization': `Bearer ${token}` } });
+        const orders = await res.json();
+        myOrders = orders;
+        renderMyOrders(orders);
+      } catch {
+        container.innerHTML = '<div class="order-history-empty">주문 내역을 불러올 수 없습니다</div>';
+      }
+    }
+
+    function renderMyOrders(orders) {
+      const container = document.getElementById('order-history');
+      if (!orders || !orders.length) {
+        container.innerHTML = '<div class="order-history-empty">주문 내역이 없습니다</div>';
+        return;
+      }
+      container.innerHTML = orders.map(o => {
+        const items = Array.isArray(o.items) ? o.items : [];
+        const itemSummary = items.length
+          ? `${items[0].name || '상품'}${items.length > 1 ? ' 외 ' + (items.length - 1) + '건' : ''}`
+          : '-';
+        const orderDate = o.created_at ? new Date(o.created_at).toLocaleDateString('ko-KR') : '';
+
+        const trackingBtn = o.tracking_number && o.courier
+          ? `<a class="btn-track" href="${COURIER_URLS[o.courier] || '#'}${o.tracking_number}" target="_blank">배송조회</a>`
+          : '';
+        const cancelBtn = o.status === '결제대기'
+          ? `<button class="btn-cancel" onclick="cancelOrder(event, ${o.id})">주문취소</button>`
+          : '';
+
+        return `<div class="my-order-card" onclick="openMyOrderModal(${o.id})">
+          <div class="my-order-header">
+            <div>
+              <div class="my-order-number">${o.order_number}</div>
+              <div class="my-order-date">${orderDate}</div>
+            </div>
+            <span class="status-badge status-${o.status}">${o.status}</span>
+          </div>
+          <div class="my-order-summary">${itemSummary}</div>
+          <div class="my-order-price">${Number(o.total_price).toLocaleString()}원</div>
+          ${trackingBtn || cancelBtn ? `<div class="my-order-actions" onclick="event.stopPropagation()">${trackingBtn}${cancelBtn}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    // 주문 상세 모달
+    function openMyOrderModal(orderId) {
+      const o = myOrders.find(x => x.id === orderId);
+      if (!o) return;
+      const items = Array.isArray(o.items) ? o.items : [];
+      const itemsHtml = items.map(i =>
+        `<tr>
+          <td style="padding:6px 0;font-size:13px;">${i.name || '-'}</td>
+          <td style="padding:6px 8px;font-size:13px;text-align:center;">${i.qty || 1}개</td>
+          <td style="padding:6px 0;font-size:13px;text-align:right;">${Number(i.price || 0).toLocaleString()}원</td>
+        </tr>`
+      ).join('');
+
+      document.getElementById('myOrderModalContent').innerHTML = `
+        <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--gray-lt);font-size:13px;line-height:1.8;">
+          <div style="color:var(--gray);font-size:11px;letter-spacing:0.06em;">주문번호</div>
+          <div style="font-weight:500;color:var(--green);">${o.order_number}</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px;">${o.created_at ? new Date(o.created_at).toLocaleString('ko-KR') : ''}</div>
+          <div style="margin-top:6px;"><span class="status-badge status-${o.status}">${o.status}</span></div>
+        </div>
+        <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--gray-lt);">
+          <div style="font-size:11px;color:var(--gray);letter-spacing:0.06em;margin-bottom:8px;">주문 상품</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <tbody>${itemsHtml}</tbody>
+            <tfoot><tr>
+              <td colspan="2" style="padding:10px 0;text-align:right;font-weight:500;font-size:13px;border-top:0.5px solid var(--gray-lt);">합계</td>
+              <td style="padding:10px 0;text-align:right;font-weight:500;font-size:13px;color:var(--green);border-top:0.5px solid var(--gray-lt);">${Number(o.total_price).toLocaleString()}원</td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--gray-lt);font-size:13px;line-height:1.8;">
+          <div style="font-size:11px;color:var(--gray);letter-spacing:0.06em;margin-bottom:4px;">배송지</div>
+          ${o.recipient_name || ''} / ${o.recipient_phone || ''}<br>
+          ${o.address || ''} ${o.address_detail || ''}<br>
+          ${o.memo ? `<span style="color:var(--gray);font-size:12px;">메모: ${o.memo}</span>` : ''}
+        </div>
+        ${o.courier && o.tracking_number ? `
+        <div style="font-size:13px;">
+          <div style="font-size:11px;color:var(--gray);letter-spacing:0.06em;margin-bottom:4px;">배송 정보</div>
+          <div>${o.courier} / ${o.tracking_number}</div>
+          <a class="btn-track" href="${COURIER_URLS[o.courier] || '#'}${o.tracking_number}" target="_blank" style="display:inline-block;margin-top:8px;">배송조회</a>
+        </div>` : ''}
+      `;
+      document.getElementById('myOrderModal').style.display = 'flex';
+    }
+
+    function closeMyOrderModal() {
+      document.getElementById('myOrderModal').style.display = 'none';
+    }
+
+    // 주문 취소
+    async function cancelOrder(event, orderId) {
+      event.stopPropagation();
+      if (!confirm('주문을 취소하시겠습니까?')) return;
+      const token = localStorage.getItem('hb_token');
+      try {
+        const res = await fetch(`/api/orders/${orderId}/cancel`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
         });
+        const data = await res.json();
+        if (data.success) {
+          showAlert('success', '주문이 취소되었습니다.');
+          loadMyOrders();
+        } else {
+          showAlert('error', data.error || '취소 실패');
+        }
+      } catch { showAlert('error', '서버 오류'); }
     }
 
     // 페이지 로드 시 주문내역 표시
-    loadOrderHistory();
+    loadMyOrders();
 
     function showAlert(type, msg) {
       const errEl = document.getElementById('alert-error');
