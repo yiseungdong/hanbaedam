@@ -150,9 +150,45 @@ app.delete('/api/products/:id', (req, res) => {
 
 // ── 주문 API ──
 
-app.get('/api/orders', (req, res) => {
+// [1] 주문 생성
+app.post('/api/orders', (req, res) => {
   const db = getDB();
-  const result = db.exec('SELECT * FROM orders ORDER BY id DESC');
+  const { user_id, guest_name, guest_phone, items, total_price, recipient_name, recipient_phone, address, address_detail, memo } = req.body;
+  const now = new Date();
+  const dateStr = now.getFullYear().toString().slice(2) + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  const order_number = `HBD${dateStr}${rand}`;
+  const itemsJson = typeof items === 'string' ? items : JSON.stringify(items);
+  try {
+    const stmt = db.prepare(
+      `INSERT INTO orders (order_number, user_id, guest_name, guest_phone, items, total_price, recipient_name, recipient_phone, address, address_detail, memo) VALUES (?,?,?,?,?,?,?,?,?,?,?)`
+    );
+    stmt.run([order_number, user_id||null, guest_name||null, guest_phone||null, itemsJson, total_price, recipient_name, recipient_phone, address, address_detail||'', memo||'']);
+    stmt.free();
+    saveDB();
+    const lastId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
+    res.json({ success: true, order_number, order_id: lastId });
+  } catch(err) {
+    res.status(500).json({ error: '주문 저장 실패' });
+  }
+});
+
+// [2] 어드민 전체 주문 목록
+app.get('/api/admin/orders', (req, res) => {
+  const db = getDB();
+  const { status, search, date_from, date_to } = req.query;
+  let sql = `SELECT * FROM orders WHERE 1=1`;
+  const conditions = [];
+  if (status && status !== '전체') conditions.push(`status='${status.replace(/'/g,"''")}'`);
+  if (search) {
+    const s = search.replace(/'/g,"''");
+    conditions.push(`(guest_name LIKE '%${s}%' OR recipient_name LIKE '%${s}%' OR recipient_phone LIKE '%${s}%' OR order_number LIKE '%${s}%')`);
+  }
+  if (date_from) conditions.push(`date(created_at)>='${date_from}'`);
+  if (date_to) conditions.push(`date(created_at)<='${date_to}'`);
+  if (conditions.length) sql += ' AND ' + conditions.join(' AND ');
+  sql += ` ORDER BY created_at DESC`;
+  const result = db.exec(sql);
   if (!result.length) return res.json([]);
   const orders = rowToObj(result[0].columns, result[0].values).map(o => {
     o.items = JSON.parse(o.items || '[]');
@@ -161,28 +197,63 @@ app.get('/api/orders', (req, res) => {
   res.json(orders);
 });
 
-app.post('/api/orders', (req, res) => {
+// [3] 주문 상태 변경
+app.patch('/api/admin/orders/:id/status', (req, res) => {
   const db = getDB();
-  const { channel, customer_name, customer_phone, customer_email, address, items, total_price, memo } = req.body;
-  const order_number = 'HB' + Date.now();
-  const delivery_fee = total_price >= 50000 ? 0 : 3000;
-  const stmt = db.prepare(`
-    INSERT INTO orders (order_number, channel, customer_name, customer_phone, customer_email, address, items, total_price, delivery_fee, memo)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  stmt.run([order_number, channel || '자체몰', customer_name, customer_phone, customer_email, address, JSON.stringify(items), total_price, delivery_fee, memo || '']);
-  stmt.free();
+  const { status, admin_memo } = req.body;
+  const fields = [];
+  const vals = [];
+  if (status) { fields.push('status=?'); vals.push(status); }
+  if (admin_memo !== undefined) { fields.push('admin_memo=?'); vals.push(admin_memo); }
+  if (!fields.length) return res.status(400).json({ error: '수정할 항목이 없습니다' });
+  fields.push("updated_at=CURRENT_TIMESTAMP");
+  vals.push(Number(req.params.id));
+  db.run(`UPDATE orders SET ${fields.join(',')} WHERE id=?`, vals);
   saveDB();
-  res.status(201).json({ order_number, delivery_fee, message: '주문 완료' });
+  res.json({ success: true });
 });
 
-app.put('/api/orders/:id/status', (req, res) => {
+// [4] 운송장 번호 등록
+app.patch('/api/admin/orders/:id/tracking', (req, res) => {
   const db = getDB();
-  const { status, tracking_number } = req.body;
-  db.run(`UPDATE orders SET status=?, tracking_number=? WHERE id=?`,
-    [status, tracking_number || '', Number(req.params.id)]);
+  const { courier, tracking_number } = req.body;
+  db.run(
+    `UPDATE orders SET courier=?, tracking_number=?, status='배송중', updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+    [courier, tracking_number, Number(req.params.id)]
+  );
   saveDB();
-  res.json({ message: '주문 상태 변경 완료' });
+  res.json({ success: true });
+});
+
+// [5] 대시보드 통계
+app.get('/api/admin/orders/stats', (req, res) => {
+  const today = new Date().toISOString().slice(0,10);
+  const monthStart = today.slice(0,7) + '-01';
+  const db = getDB();
+  const result = db.exec(`
+    SELECT
+      (SELECT COUNT(*) FROM orders WHERE date(created_at)='${today}') AS today_count,
+      (SELECT COALESCE(SUM(total_price),0) FROM orders WHERE date(created_at)>='${monthStart}' AND status!='취소') AS month_revenue,
+      (SELECT COUNT(*) FROM orders WHERE status IN ('결제대기','결제완료')) AS pending_count,
+      (SELECT COUNT(*) FROM orders WHERE status='배송중') AS shipping_count
+  `);
+  if (!result.length) return res.json({ today_count: 0, month_revenue: 0, pending_count: 0, shipping_count: 0 });
+  const row = rowToObj(result[0].columns, result[0].values)[0];
+  res.json(row);
+});
+
+// [6] 회원 본인 주문 목록
+app.get('/api/orders/my', (req, res) => {
+  const user = verifyToken(req);
+  if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
+  const db = getDB();
+  const result = db.exec(`SELECT id, order_number, items, total_price, status, courier, tracking_number, created_at FROM orders WHERE user_id=${Number(user.id)} ORDER BY created_at DESC`);
+  if (!result.length) return res.json([]);
+  const orders = rowToObj(result[0].columns, result[0].values).map(o => {
+    o.items = JSON.parse(o.items || '[]');
+    return o;
+  });
+  res.json(orders);
 });
 
 // ── 사진 업로드 API ──

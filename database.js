@@ -41,21 +41,36 @@ async function initDB() {
   db.run(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_number TEXT UNIQUE,
-      channel TEXT,
-      customer_name TEXT,
-      customer_phone TEXT,
-      customer_email TEXT,
-      address TEXT,
-      items TEXT,
-      total_price INTEGER,
-      delivery_fee INTEGER DEFAULT 3000,
-      status TEXT DEFAULT '결제완료',
+      order_number TEXT UNIQUE NOT NULL,
+      user_id INTEGER,
+      guest_name TEXT,
+      guest_phone TEXT,
+      items TEXT NOT NULL,
+      total_price INTEGER NOT NULL,
+      recipient_name TEXT NOT NULL,
+      recipient_phone TEXT NOT NULL,
+      address TEXT NOT NULL,
+      address_detail TEXT,
+      memo TEXT,
+      status TEXT DEFAULT '결제대기',
+      admin_memo TEXT DEFAULT '',
+      courier TEXT DEFAULT '',
       tracking_number TEXT DEFAULT '',
-      memo TEXT DEFAULT '',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // 기존 orders 테이블 마이그레이션 (컬럼 추가)
+  try { db.run('ALTER TABLE orders ADD COLUMN user_id INTEGER'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN guest_name TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN guest_phone TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN recipient_name TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN recipient_phone TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN address_detail TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN admin_memo TEXT DEFAULT ""'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN courier TEXT DEFAULT ""'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'); } catch(e) {}
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (

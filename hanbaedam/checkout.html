@@ -259,7 +259,7 @@
     }
 
     /* ── 주문 제출 ── */
-    function submitOrder() {
+    async function submitOrder() {
       const name = document.getElementById('buyer-name').value.trim();
       const phone = document.getElementById('buyer-phone').value.trim();
       const email = document.getElementById('buyer-email').value.trim();
@@ -275,37 +275,47 @@
       if (!postcode || !address) return alert('주소를 검색해주세요.');
       if (!agree) return alert('이용약관에 동의해주세요.');
 
-      const subtotal = Cart.total();
-      const fullAddress = `(${postcode}) ${address} ${addressDetail}`;
+      const cartItems = Cart.get();
+      if (!cartItems.length) { alert('장바구니가 비어있습니다.'); return; }
 
-      const orderData = {
-        channel: '자체몰',
-        customer_name: name,
-        customer_phone: phone,
-        customer_email: email,
-        address: fullAddress,
-        items: cart.map(i => ({ id: i.id, qty: i.qty })),
-        total_price: subtotal,
-        memo: memo
-      };
+      const totalPrice = Cart.total();
+      const fullAddress = `(${postcode}) ${address}`;
+      const token = localStorage.getItem('hb_token');
+      const user = JSON.parse(localStorage.getItem('hb_user') || 'null');
 
-      fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      })
-      .then(res => res.json())
-      .then(result => {
-        // 장바구니 비우기
-        localStorage.removeItem('hb_cart');
-        Cart.updateBadge();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        alert(`주문이 완료되었습니다!\n주문번호: ${result.order_number}`);
-        location.href = 'mypage.html';
-      })
-      .catch(() => {
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            user_id: user ? user.id : null,
+            guest_name: name,
+            guest_phone: phone,
+            items: cartItems.map(i => ({ id: i.id, qty: i.qty })),
+            total_price: totalPrice,
+            recipient_name: name,
+            recipient_phone: phone,
+            address: fullAddress,
+            address_detail: addressDetail,
+            memo
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.removeItem('hb_cart');
+          Cart.updateBadge();
+          localStorage.setItem('hb_last_order', data.order_number);
+          alert(`주문 완료!\n주문번호: ${data.order_number}`);
+          location.href = 'mypage.html';
+        } else {
+          alert(data.error || '주문 처리 중 오류가 발생했습니다.');
+        }
+      } catch {
         alert('주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-      });
+      }
     }
   </script>
 </body>
