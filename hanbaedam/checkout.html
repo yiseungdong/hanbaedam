@@ -112,8 +112,8 @@
             </div>
           </div>
           <div class="form-row">
-            <label class="form-label">이메일</label>
-            <input class="form-input" type="email" id="buyer-email" required>
+            <label class="form-label">이메일 <span style="font-size:11px;color:var(--gray);font-weight:300;">(선택)</span></label>
+            <input class="form-input" type="email" id="buyer-email" placeholder="주문 확인 메일 수신용">
           </div>
         </div>
 
@@ -172,7 +172,7 @@
           <span>주문 내용을 확인하였으며, <a href="#">이용약관</a>에 동의합니다.</span>
         </div>
         <button class="btn btn--primary" style="width:100%;margin-top:16px;text-align:center;padding:14px;" onclick="submitOrder()">
-          결제하기
+          주문하기
         </button>
         <div style="font-size:11px;color:var(--gray);text-align:center;margin-top:12px;line-height:1.7;">
           배송비 3,000원 (50,000원 이상 무료)<br>주문 후 1~2일 이내 홍천 직배송
@@ -271,7 +271,6 @@
 
       if (!name) return alert('이름을 입력해주세요.');
       if (!phone) return alert('연락처를 입력해주세요.');
-      if (!email) return alert('이메일을 입력해주세요.');
       if (!postcode || !address) return alert('주소를 검색해주세요.');
       if (!agree) return alert('이용약관에 동의해주세요.');
 
