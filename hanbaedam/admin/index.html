@@ -810,6 +810,11 @@
   }
 
   // ── 사진 관리 ──
+  // [테스트 방법]
+  // 1. 어드민 열기: http://localhost:3000/admin
+  // 2. 사이드바에서 "사진 관리" 클릭
+  // 3. 이미지 파일을 드롭존(점선 영역)에 드래그해서 놓기 → 원본/보정후 캔버스에 표시되는지 확인
+  // 4. 다른 이미지를 다시 드롭존에 드래그 → 기존 이미지가 새 이미지로 교체되는지 확인
   let originalImage = null;
   let currentFile = null;
   let applyingPhotoUrl = '';
