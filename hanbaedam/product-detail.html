@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>상품 상세 — 한백담</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .detail { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; padding: 64px 0; }
+    .detail__img { aspect-ratio: 1; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 80px; }
+    .detail__eyebrow { font-size: 11px; color: var(--gray); letter-spacing: 0.16em; margin-bottom: 12px; }
+    .detail__name { font-family: var(--serif); font-size: 28px; font-weight: 400; margin-bottom: 10px; line-height: 1.4; }
+    .detail__price { font-size: 22px; font-weight: 500; color: var(--green); margin-bottom: 20px; }
+    .detail__desc { font-size: 14px; color: var(--text-md); line-height: 1.9; margin-bottom: 24px; font-weight: 300; }
+    .detail__tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .detail__tag { font-size: 11px; border: 0.5px solid var(--gray-lt); padding: 4px 10px; border-radius: 2px; color: var(--gray); letter-spacing: 0.08em; }
+    .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .qty-btn { width: 36px; height: 36px; border: 0.5px solid var(--gray-lt); background: transparent; font-size: 18px; border-radius: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); font-weight: 300; }
+    .qty-input { width: 52px; text-align: center; font-size: 15px; border: 0.5px solid var(--gray-lt); padding: 7px; border-radius: 2px; font-family: var(--sans); background: transparent; color: var(--text); }
+    .detail__btns { display: flex; gap: 12px; }
+    .detail__btns .btn { flex: 1; text-align: center; padding: 14px; }
+    .detail__info { margin-top: 32px; border-top: 0.5px solid var(--gray-lt); padding-top: 24px; }
+    .info-row { display: flex; gap: 16px; padding: 10px 0; border-bottom: 0.5px solid var(--gray-lt); font-size: 13px; }
+    .info-row dt { color: var(--gray); width: 80px; flex-shrink: 0; font-weight: 300; }
+    .info-row dd { color: var(--text-md); font-weight: 300; }
+    @media (max-width: 768px) { .detail { grid-template-columns: 1fr; gap: 32px; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">한백담<span>HANBAEDAM</span></a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- 브레드크럼 -->
+    <div style="padding:20px 0; font-size:12px; color:var(--gray);">
+      <a href="index.html" style="color:var(--gray);">홈</a>
+      <span style="margin:0 8px;">›</span>
+      <a href="products.html" style="color:var(--gray);">상품</a>
+      <span style="margin:0 8px;">›</span>
+      <span id="breadcrumb-name" style="color:var(--text-md);"></span>
+    </div>
+
+    <div class="detail">
+      <div class="detail__img" id="detail-img"></div>
+      <div>
+        <div class="detail__eyebrow" id="detail-badge"></div>
+        <h1 class="detail__name" id="detail-name"></h1>
+        <div class="detail__price" id="detail-price"></div>
+        <p class="detail__desc" id="detail-desc"></p>
+        <div class="detail__tags" id="detail-tags"></div>
+
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <input type="number" class="qty-input" id="qty" value="1" min="1" max="99">
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+
+        <div class="detail__btns">
+          <button class="btn btn--outline" onclick="addToCart()">장바구니 담기</button>
+          <button class="btn btn--primary" onclick="buyNow()">바로 구매</button>
+        </div>
+
+        <dl class="detail__info" id="detail-info"></dl>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">한백담<span>HANBAEDAM · 韓白潭</span></div>
+      <div class="footer__links"><a href="#">이용약관</a><a href="#">고객센터</a></div>
+    </div>
+    <div class="footer__copy">© 2025 HANBAEDAM. All rights reserved.</div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const id = parseInt(getParam('id'));
+    const p = PRODUCTS.find(x => x.id === id);
+
+    if (!p) {
+      document.querySelector('.container').innerHTML = '<p style="padding:80px 0;text-align:center;color:var(--gray);">상품을 찾을 수 없습니다.</p>';
+    } else {
+      document.title = `${p.name} — 한백담`;
+      document.getElementById('breadcrumb-name').textContent = p.name;
+      document.getElementById('detail-img').style.background = p.color;
+      document.getElementById('detail-badge').textContent = `${p.badge} · HANBAEDAM`;
+      document.getElementById('detail-name').textContent = p.name;
+      document.getElementById('detail-price').textContent = `${p.price.toLocaleString()}원 / ${p.unit}`;
+      document.getElementById('detail-desc').textContent = p.detail;
+      document.getElementById('detail-tags').innerHTML = p.tags.map(t => `<span class="detail__tag">${t}</span>`).join('');
+      document.getElementById('detail-info').innerHTML = `
+        <div class="info-row"><dt>원산지</dt><dd>강원도 홍천</dd></div>
+        <div class="info-row"><dt>용량</dt><dd>${p.unit}</dd></div>
+        <div class="info-row"><dt>배송</dt><dd>주문 후 1~2일 이내 홍천 직배송</dd></div>
+        <div class="info-row"><dt>재고</dt><dd>${p.stock > 0 ? `${p.stock}개 남음` : '품절'}</dd></div>
+      `;
+    }
+
+    function changeQty(d) {
+      const el = document.getElementById('qty');
+      el.value = Math.max(1, parseInt(el.value) + d);
+    }
+
+    function addToCart() {
+      if (!p) return;
+      const qty = parseInt(document.getElementById('qty').value);
+      Cart.add(p.id, qty);
+      alert(`장바구니에 ${qty}개 담았습니다.`);
+    }
+
+    function buyNow() {
+      if (!p) return;
+      addToCart();
+      location.href = 'cart.html';
+    }
+  </script>
+</body>
+</html>

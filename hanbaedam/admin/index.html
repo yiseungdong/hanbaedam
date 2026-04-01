@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한백담 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F0EBE0; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+    /* 사이드바 */
+    .sidebar { background: var(--dark); padding: 28px 0; position: sticky; top: 0; height: 100vh; }
+    .sidebar__logo { padding: 0 24px 28px; border-bottom: 0.5px solid rgba(255,255,255,0.08); margin-bottom: 16px; }
+    .sidebar__logo-text { font-family: var(--serif); font-size: 15px; color: var(--bg); }
+    .sidebar__logo-sub { font-size: 10px; color: rgba(246,242,234,0.35); letter-spacing: 0.15em; margin-top: 2px; }
+    .sidebar__menu { list-style: none; }
+    .sidebar__menu li a {
+      display: block; padding: 11px 24px; font-size: 13px; color: rgba(246,242,234,0.5);
+      letter-spacing: 0.04em; transition: all .2s; font-weight: 300;
+    }
+    .sidebar__menu li a:hover, .sidebar__menu li a.active { color: var(--bg); background: rgba(255,255,255,0.05); }
+    .sidebar__menu li a.active { border-left: 2px solid var(--green-mid); }
+
+    /* 메인 */
+    .admin-main { padding: 36px; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .admin-title { font-family: var(--serif); font-size: 22px; font-weight: 400; }
+
+    /* 통계 카드 */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: var(--bg); border-radius: var(--radius); padding: 20px; border: 0.5px solid var(--gray-lt); }
+    .stat-card__label { font-size: 11px; color: var(--gray); letter-spacing: 0.1em; margin-bottom: 8px; }
+    .stat-card__value { font-size: 24px; font-weight: 500; color: var(--text); }
+    .stat-card__sub { font-size: 11px; color: var(--green); margin-top: 4px; font-weight: 300; }
+
+    /* 테이블 */
+    .table-card { background: var(--bg); border-radius: var(--radius); border: 0.5px solid var(--gray-lt); overflow: hidden; margin-bottom: 28px; }
+    .table-card__header { padding: 18px 24px; border-bottom: 0.5px solid var(--gray-lt); display: flex; justify-content: space-between; align-items: center; }
+    .table-card__title { font-size: 14px; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { padding: 12px 16px; text-align: left; font-size: 11px; color: var(--gray); letter-spacing: 0.08em; font-weight: 400; border-bottom: 0.5px solid var(--gray-lt); background: var(--bg2); }
+    td { padding: 14px 16px; border-bottom: 0.5px solid var(--gray-lt); color: var(--text-md); font-weight: 300; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg2); }
+
+    /* 채널 상태 뱃지 */
+    .badge { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 2px; letter-spacing: 0.06em; font-weight: 400; }
+    .badge--on { background: #EAF3DE; color: #27500A; }
+    .badge--off { background: var(--bg2); color: var(--gray); }
+    .badge--pending { background: #FAEEDA; color: #633806; }
+
+    /* 채널 연동 섹션 */
+    .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .channel-card { background: var(--bg); border: 0.5px solid var(--gray-lt); border-radius: var(--radius); padding: 20px; }
+    .channel-card__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .channel-card__name { font-size: 14px; font-weight: 500; }
+    .channel-card__desc { font-size: 12px; color: var(--gray); margin-bottom: 14px; font-weight: 300; line-height: 1.6; }
+    .channel-card__btn { font-size: 11px; padding: 6px 14px; border-radius: 2px; cursor: pointer; font-family: var(--sans); letter-spacing: 0.06em; border: 0.5px solid var(--gray-lt); background: transparent; color: var(--text-md); }
+    .channel-card__btn:hover { background: var(--green); color: var(--bg); border-color: var(--green); }
+    .channel-card__btn.connected { background: #EAF3DE; color: #27500A; border-color: #97C459; }
+
+    /* 폼 */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; color: var(--gray); letter-spacing: 0.06em; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px; border: 0.5px solid var(--gray-lt); border-radius: 2px;
+      font-size: 13px; font-family: var(--sans); background: var(--bg); color: var(--text);
+      font-weight: 300;
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); border-radius: 8px; padding: 32px; width: 600px; max-height: 85vh; overflow-y: auto; }
+    .modal-title { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 24px; }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 0.5px solid var(--gray-lt); }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .channel-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <div class="sidebar__logo-text">한백담</div>
+      <div class="sidebar__logo-sub">ADMIN · 관리자</div>
+    </div>
+    <ul class="sidebar__menu">
+      <li><a href="#" class="active" onclick="showTab('dashboard')">대시보드</a></li>
+      <li><a href="#" onclick="showTab('products')">상품 관리</a></li>
+      <li><a href="#" onclick="showTab('channels')">채널 연동</a></li>
+      <li><a href="#" onclick="showTab('orders')">주문 관리</a></li>
+      <li><a href="#" onclick="showTab('inventory')">재고 관리</a></li>
+      <li><a href="../index.html" target="_blank" style="margin-top:20px;border-top:0.5px solid rgba(255,255,255,0.08);padding-top:16px;">← 쇼핑몰 보기</a></li>
+    </ul>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="admin-main">
+
+    <!-- 대시보드 탭 -->
+    <div id="tab-dashboard">
+      <div class="admin-header">
+        <div class="admin-title">대시보드</div>
+        <div style="font-size:12px;color:var(--gray);">마지막 업데이트: 방금</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__label">오늘 주문</div>
+          <div class="stat-card__value">0</div>
+          <div class="stat-card__sub">운영 준비 중</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">총 상품 수</div>
+          <div class="stat-card__value" id="stat-products">6</div>
+          <div class="stat-card__sub">등록된 상품</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">연동 채널</div>
+          <div class="stat-card__value">1</div>
+          <div class="stat-card__sub">네이버 스마트스토어</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">재고 부족</div>
+          <div class="stat-card__value" id="stat-low">0</div>
+          <div class="stat-card__sub">10개 미만</div>
+        </div>
+      </div>
+
+      <!-- 선물 시즌 관리 -->
+      <div style="background:var(--bg);border:0.5px solid var(--gray-lt);border-radius:var(--radius);padding:20px 24px;margin-bottom:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:14px;font-weight:500;">선물 시즌 관리</span>
+            <span id="gift-season-badge"></span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn--primary" style="font-size:11px;padding:6px 14px;" onclick="setGiftSeason('on')">강제 ON</button>
+            <button style="font-size:11px;padding:6px 14px;border-radius:2px;cursor:pointer;font-family:var(--sans);letter-spacing:0.06em;background:transparent;border:0.5px solid #F09595;color:#A32D2D;" onclick="setGiftSeason('off')">강제 OFF</button>
+            <button class="btn btn--outline" style="font-size:11px;padding:6px 14px;" onclick="setGiftSeason('auto')">자동감지</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7;">
+          자동감지: 설날·추석·어버이날·스승의날·크리스마스 전후 자동으로 선물세트 노출
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card__header">
+          <div class="table-card__title">상품 현황</div>
+          <button class="btn btn--primary" style="font-size:11px;padding:7px 16px;" onclick="showTab('products')">상품 관리</button>
+        </div>
+        <table>
+          <thead><tr><th>상품명</th><th>카테고리</th><th>가격</th><th>재고</th><th>네이버</th><th>쿠팡</th></tr></thead>
+          <tbody id="dashboard-product-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 상품 관리 탭 -->
+    <div id="tab-products" style="display:none;">
+      <div class="admin-header">
+        <div class="admin-title">상품 관리</div>
+        <button class="btn btn--primary" style="font-size:12px;padding:9px 20px;" onclick="openAddModal()">+ 상품 등록</button>
+      </div>
+      <div class="table-card">
+        <div class="table-card__header">
+          <div class="table-card__title">전체 상품 <span style="color:var(--gray);font-weight:300;" id="prod-count"></span></div>
+          <div style="font-size:12px;color:var(--green);">상품 등록 시 연동 채널에 자동 반영</div>
+        </div>
+        <table>
+          <thead><tr><th>상품명</th><th>카테고리</th><th>가격</th><th>단위</th><th>재고</th><th>태그</th><th>관리</th></tr></thead>
+          <tbody id="products-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 채널 연동 탭 -->
+    <div id="tab-channels" style="display:none;">
+      <div class="admin-header">
+        <div class="admin-title">채널 연동</div>
+      </div>
+      <div style="background:#EAF3DE;border:0.5px solid #97C459;border-radius:4px;padding:14px 20px;margin-bottom:24px;font-size:13px;color:#27500A;">
+        상품을 등록하면 연동된 모든 채널에 자동으로 반영됩니다. 재고 변동도 실시간 동기화됩니다.
+      </div>
+      <div class="channel-grid">
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">네이버 스마트스토어</div>
+            <span class="badge badge--on">연동중</span>
+          </div>
+          <div class="channel-card__desc">국내 최대 트래픽. 네이버 쇼핑 검색 자동 노출. 상품 등록/수정/재고 API 연동.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 카테고리별 2~5%</div>
+          <button class="channel-card__btn connected">API 연결됨</button>
+        </div>
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">쿠팡 마켓플레이스</div>
+            <span class="badge badge--off">미연동</span>
+          </div>
+          <div class="channel-card__desc">국내 2위 트래픽. WING API로 상품 자동 등록. 로켓배송 연계 가능.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 10~15% | WING 셀러 가입 필요</div>
+          <button class="channel-card__btn" onclick="showChannelSetup('쿠팡')">연동 설정</button>
+        </div>
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">카카오 선물하기</div>
+            <span class="badge badge--pending">심사중</span>
+          </div>
+          <div class="channel-card__desc">선물 특화 플랫폼. 가공식품/선물세트에 최적. 브랜드 심사 통과 후 연동.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 10~15% | 브랜드 심사 필요</div>
+          <button class="channel-card__btn" onclick="showChannelSetup('카카오 선물하기')">입점 신청 안내</button>
+        </div>
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">마켓컬리</div>
+            <span class="badge badge--off">미연동</span>
+          </div>
+          <div class="channel-card__desc">프리미엄 식품 플랫폼. 심사 기준 높지만 브랜드 신뢰도 상승 효과.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 15~25% | 판매자 심사 필요</div>
+          <button class="channel-card__btn" onclick="showChannelSetup('마켓컬리')">입점 신청 안내</button>
+        </div>
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">11번가</div>
+            <span class="badge badge--off">미연동</span>
+          </div>
+          <div class="channel-card__desc">농산물 기획전 참여 가능. 11번가 API로 상품 자동 등록 지원.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 7~12% | 사업자 가입 필요</div>
+          <button class="channel-card__btn" onclick="showChannelSetup('11번가')">연동 설정</button>
+        </div>
+        <div class="channel-card">
+          <div class="channel-card__top">
+            <div class="channel-card__name">올웨이즈</div>
+            <span class="badge badge--off">미연동</span>
+          </div>
+          <div class="channel-card__desc">농산물 특화 소셜커머스. 진입 장벽 낮고 농산물 구매자 집중.</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:12px;">수수료: 5~8% | 간편 가입 가능</div>
+          <button class="channel-card__btn" onclick="showChannelSetup('올웨이즈')">연동 설정</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 주문 관리 탭 -->
+    <div id="tab-orders" style="display:none;">
+      <div class="admin-header"><div class="admin-title">주문 관리</div></div>
+      <div style="background:var(--bg);border:0.5px solid var(--gray-lt);border-radius:4px;padding:60px;text-align:center;">
+        <div style="font-size:15px;color:var(--gray);font-family:var(--serif);margin-bottom:12px;">아직 접수된 주문이 없습니다</div>
+        <div style="font-size:12px;color:var(--gray);font-weight:300;">채널 연동 및 판매 시작 후 모든 채널의 주문이 여기에 통합 표시됩니다</div>
+      </div>
+    </div>
+
+    <!-- 재고 관리 탭 -->
+    <div id="tab-inventory" style="display:none;">
+      <div class="admin-header"><div class="admin-title">재고 관리</div></div>
+      <div class="table-card">
+        <div class="table-card__header"><div class="table-card__title">재고 현황</div></div>
+        <table>
+          <thead><tr><th>상품명</th><th>현재 재고</th><th>상태</th><th>재고 수정</th></tr></thead>
+          <tbody id="inventory-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- 상품 등록 모달 -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">상품 등록</div>
+    <div class="form-grid">
+      <div class="form-group"><label>상품명</label><input type="text" id="f-name" placeholder="예: 홍천 고구마"></div>
+      <div class="form-group"><label>카테고리</label>
+        <select id="f-cat"><option value="fresh">신선식품</option><option value="processed">가공식품</option><option value="gift">선물세트</option></select>
+      </div>
+      <div class="form-group"><label>가격 (원)</label><input type="number" id="f-price" placeholder="12000"></div>
+      <div class="form-group"><label>단위</label><input type="text" id="f-unit" placeholder="예: 2kg, 300g, 세트"></div>
+      <div class="form-group"><label>재고 수량</label><input type="number" id="f-stock" placeholder="50"></div>
+      <div class="form-group"><label>뱃지</label><input type="text" id="f-badge" placeholder="신선 / 가공 / GIFT"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>짧은 설명</label><input type="text" id="f-desc" placeholder="한 줄 설명"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>상세 설명</label><textarea id="f-detail" placeholder="상품 상세 설명"></textarea></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>태그 (쉼표 구분)</label><input type="text" id="f-tags" placeholder="무농약, 강원도, 선물"></div>
+    </div>
+    <div style="background:#EAF3DE;border-radius:4px;padding:12px 16px;margin-top:16px;font-size:12px;color:#27500A;">
+      등록 시 연동된 채널(현재: 네이버 스마트스토어)에 자동 반영됩니다
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--outline" onclick="closeModal()">취소</button>
+      <button class="btn btn--primary" onclick="addProduct()">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+  let adminProducts = [...PRODUCTS];
+
+  function showTab(name) {
+    ['dashboard','products','channels','orders','inventory'].forEach(t => {
+      document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.sidebar__menu a').forEach((a,i) => {
+      a.classList.toggle('active', ['dashboard','products','channels','orders','inventory'][i] === name);
+    });
+    if (name === 'products') renderProductsTable();
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'inventory') renderInventory();
+  }
+
+  function renderDashboard() {
+    document.getElementById('stat-products').textContent = adminProducts.length;
+    const lowStock = adminProducts.filter(p => p.stock < 10).length;
+    document.getElementById('stat-low').textContent = lowStock;
+    document.getElementById('dashboard-product-table').innerHTML = adminProducts.map(p => `
+      <tr>
+        <td style="font-weight:400;">${p.name}</td>
+        <td>${{fresh:'신선식품',processed:'가공식품',gift:'선물세트'}[p.category]}</td>
+        <td>${p.price.toLocaleString()}원</td>
+        <td style="color:${p.stock < 10 ? '#c0392b' : 'inherit'}">${p.stock}개</td>
+        <td><span class="badge badge--on">연동</span></td>
+        <td><span class="badge badge--off">미연동</span></td>
+      </tr>`).join('');
+  }
+
+  function renderProductsTable() {
+    document.getElementById('prod-count').textContent = `(${adminProducts.length}개)`;
+    document.getElementById('products-table').innerHTML = adminProducts.map(p => `
+      <tr>
+        <td style="font-weight:400;">${p.name}</td>
+        <td>${{fresh:'신선식품',processed:'가공식품',gift:'선물세트'}[p.category]}</td>
+        <td>${p.price.toLocaleString()}원</td>
+        <td>${p.unit}</td>
+        <td style="color:${p.stock < 10 ? '#c0392b' : 'inherit'}">${p.stock}개</td>
+        <td>${p.tags.map(t => `<span style="font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:2px;margin-right:4px;">${t}</span>`).join('')}</td>
+        <td>
+          <button style="font-size:11px;padding:4px 10px;border:0.5px solid var(--gray-lt);background:transparent;border-radius:2px;cursor:pointer;margin-right:6px;" onclick="alert('수정 기능은 서버 연동 후 활성화됩니다')">수정</button>
+          <button style="font-size:11px;padding:4px 10px;border:0.5px solid #F09595;background:transparent;color:#A32D2D;border-radius:2px;cursor:pointer;" onclick="deleteProduct(${p.id})">삭제</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function renderInventory() {
+    document.getElementById('inventory-table').innerHTML = adminProducts.map(p => `
+      <tr>
+        <td style="font-weight:400;">${p.name}</td>
+        <td>${p.stock}개</td>
+        <td><span class="badge ${p.stock === 0 ? 'badge--off' : p.stock < 10 ? 'badge--pending' : 'badge--on'}">${p.stock === 0 ? '품절' : p.stock < 10 ? '부족' : '정상'}</span></td>
+        <td><input type="number" value="${p.stock}" min="0" style="width:80px;padding:4px 8px;border:0.5px solid var(--gray-lt);border-radius:2px;font-family:var(--sans);background:var(--bg);" onchange="updateStock(${p.id}, this.value)"></td>
+      </tr>`).join('');
+  }
+
+  function updateStock(id, val) {
+    const p = adminProducts.find(x => x.id === id);
+    if (p) { p.stock = parseInt(val); renderInventory(); }
+  }
+
+  function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+  function closeModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+  function addProduct() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('상품명을 입력해주세요'); return; }
+    const newProd = {
+      id: Date.now(),
+      category: document.getElementById('f-cat').value,
+      name,
+      desc: document.getElementById('f-desc').value,
+      detail: document.getElementById('f-detail').value,
+      price: parseInt(document.getElementById('f-price').value) || 0,
+      unit: document.getElementById('f-unit').value,
+      badge: document.getElementById('f-badge').value || '신선',
+      color: '#D8D8D0',
+      tags: document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+      stock: parseInt(document.getElementById('f-stock').value) || 0,
+      naver_id: '', coupang_id: ''
+    };
+    adminProducts.push(newProd);
+    closeModal();
+    alert(`"${name}" 등록 완료!\n연동된 채널에 반영 중...`);
+    showTab('products');
+  }
+
+  function deleteProduct(id) {
+    if (!confirm('상품을 삭제하시겠습니까?')) return;
+    adminProducts = adminProducts.filter(p => p.id !== id);
+    renderProductsTable();
+  }
+
+  function showChannelSetup(name) {
+    const guides = {
+      '쿠팡': '1. 쿠팡 WING (wing.coupang.com) 셀러 가입\n2. 사업자등록증 등록\n3. API 키 발급 후 이 화면에서 입력\n4. 상품 자동 연동 시작',
+      '카카오 선물하기': '1. kakao.bizboard.kakao.com 접속\n2. 브랜드 입점 신청서 작성\n3. 심사 통과 후 (2~4주) API 연동\n4. 패키지 디자인 심사 별도 진행',
+      '마켓컬리': '1. seller.kurly.com 판매자 신청\n2. 상품 샘플 발송 및 품질 심사\n3. 계약 후 MD 담당자 배정\n4. 상품 페이지 컬리 스타일로 재작성 필요',
+      '11번가': '1. 11번가 셀러오피스 (seller.11st.co.kr) 가입\n2. 사업자 서류 등록\n3. Open API 신청 후 키 발급\n4. 이 화면에서 API 키 입력 후 연동',
+      '올웨이즈': '1. alwayz.co 판매자 신청 (매우 간단)\n2. 사업자등록증만 있으면 즉시 가능\n3. 농산물 카테고리 특화 노출 신청\n4. 상품 등록 후 자동 연동'
+    };
+    alert(`[${name} 연동 방법]\n\n${guides[name] || '준비 중입니다.'}`);
+  }
+
+  // 선물시즌 관리
+  function setGiftSeason(mode) {
+    if (mode === 'auto') {
+      localStorage.removeItem('hb_gift_season');
+    } else {
+      localStorage.setItem('hb_gift_season', mode);
+    }
+    location.reload();
+  }
+
+  function updateGiftSeasonBadge() {
+    const forced = localStorage.getItem('hb_gift_season');
+    const badgeEl = document.getElementById('gift-season-badge');
+    if (forced === 'on') {
+      badgeEl.innerHTML = '<span class="badge badge--on">강제 ON</span>';
+    } else if (forced === 'off') {
+      badgeEl.innerHTML = '<span class="badge badge--off">강제 OFF</span>';
+    } else if (isGiftSeason()) {
+      badgeEl.innerHTML = '<span class="badge badge--on">시즌 자동 감지됨</span>';
+    } else {
+      badgeEl.innerHTML = '<span class="badge badge--off">비시즌</span>';
+    }
+  }
+
+  // 초기 렌더
+  renderDashboard();
+  updateGiftSeasonBadge();
+</script>
+</body>
+</html>

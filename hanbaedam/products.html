@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>상품 — 한백담</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .page-header { padding: 52px 0 36px; border-bottom: 0.5px solid var(--gray-lt); }
+    .page-header__title { font-size: 28px; margin-bottom: 6px; }
+    .page-header__desc { font-size: 13px; color: var(--gray); font-weight: 300; }
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 36px; flex-wrap: wrap; }
+    .filter-btn {
+      font-size: 12px; padding: 8px 18px; border-radius: 2px;
+      border: 0.5px solid var(--gray-lt); background: transparent;
+      color: var(--text-md); letter-spacing: 0.06em; cursor: pointer; transition: all .2s;
+      font-family: var(--sans);
+    }
+    .filter-btn.active, .filter-btn:hover { background: var(--green); color: var(--bg); border-color: var(--green); }
+    .product-grid-full { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    @media (max-width: 1024px) { .product-grid-full { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 768px) { .product-grid-full { grid-template-columns: repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">한백담<span>HANBAEDAM</span></a>
+    <ul class="nav__links">
+      <li><a href="products.html" style="color:var(--green);">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-header__title serif">상품</h1>
+      <p class="page-header__desc">강원도 홍천에서 직배송하는 청정 농산물과 가공식품</p>
+    </div>
+
+    <div class="section">
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">전체</button>
+        <button class="filter-btn" data-filter="fresh">신선식품</button>
+        <button class="filter-btn" data-filter="processed">가공식품</button>
+        <button class="filter-btn" data-filter="gift">선물세트</button>
+      </div>
+      <div class="product-grid-full" id="products-container"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">한백담<span>HANBAEDAM · 韓白潭</span></div>
+      <div class="footer__links">
+        <a href="#">이용약관</a><a href="#">개인정보처리방침</a><a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">© 2025 HANBAEDAM. All rights reserved.</div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    let currentFilter = 'all';
+
+    function renderProducts(filter) {
+      const filtered = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
+      document.getElementById('products-container').innerHTML = filtered.map(renderProductCard).join('');
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderProducts(currentFilter);
+      });
+    });
+
+    renderProducts('all');
+  </script>
+</body>
+</html>

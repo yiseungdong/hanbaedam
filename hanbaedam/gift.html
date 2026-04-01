@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>선물하기 — 한백담</title>
+  <meta name="description" content="한백담 선물세트. 강원도 홍천의 청정 자연을 담은 정성스러운 선물. 명절, 감사, 건강 선물세트와 기업 단체주문.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── GIFT HERO ── */
+    .gift-hero {
+      background: #2A5C3F; position: relative; overflow: hidden;
+      min-height: 420px; display: flex; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .gift-hero__mountain { position: absolute; bottom: 0; width: 100%; }
+    .gift-hero__content { position: relative; z-index: 1; padding: 80px 40px; }
+    .gift-hero__eyebrow { font-size: 11px; color: rgba(246,242,234,0.6); letter-spacing: 0.24em; margin-bottom: 20px; }
+    .gift-hero__title { font-family: var(--serif); font-size: 38px; color: var(--bg); line-height: 1.55; margin-bottom: 18px; }
+    .gift-hero__sub { font-size: 14px; color: rgba(246,242,234,0.55); font-weight: 300; letter-spacing: 0.06em; }
+
+    /* ── RECOMMEND TABS ── */
+    .recommend { padding: 72px 0; background: var(--bg2); }
+    .recommend__tabs { display: flex; gap: 12px; justify-content: center; margin-bottom: 40px; }
+    .recommend__tab {
+      font-size: 13px; padding: 10px 28px; border-radius: 2px;
+      border: 0.5px solid var(--gray-lt); background: transparent;
+      color: var(--text-md); letter-spacing: 0.06em; transition: all .2s;
+      cursor: pointer;
+    }
+    .recommend__tab.active { background: var(--green); color: var(--bg); border-color: var(--green); }
+    .recommend__tab:hover:not(.active) { border-color: var(--green); color: var(--green); }
+    .recommend__desc { text-align: center; font-size: 14px; color: var(--text-md); margin-bottom: 32px; font-weight: 300; line-height: 1.8; }
+    .recommend__card {
+      max-width: 480px; margin: 0 auto; background: var(--bg);
+      border-radius: var(--radius); padding: 32px; text-align: center;
+      border: 0.5px solid var(--gray-lt);
+    }
+    .recommend__card-badge { font-size: 10px; color: var(--green); letter-spacing: 0.16em; margin-bottom: 10px; }
+    .recommend__card-name { font-family: var(--serif); font-size: 20px; margin-bottom: 8px; }
+    .recommend__card-price { font-size: 15px; font-weight: 500; color: var(--green); margin-bottom: 16px; }
+    .recommend__card-link { font-size: 12px; color: var(--green); border-bottom: 0.5px solid var(--green); padding-bottom: 1px; }
+
+    /* ── GIFT PRODUCTS ── */
+    .gift-products { padding: 72px 0; }
+
+    .gift-card__toggle {
+      font-size: 12px; color: var(--green); background: transparent;
+      border: 0.5px solid var(--green); padding: 6px 16px; border-radius: 2px;
+      margin-top: 10px; cursor: pointer; letter-spacing: 0.06em; transition: all .2s;
+    }
+    .gift-card__toggle:hover { background: var(--green); color: var(--bg); }
+    .gift-card__detail {
+      display: none; margin-top: 10px; padding: 12px;
+      background: var(--bg2); border-radius: var(--radius);
+      font-size: 12px; color: var(--text-md); line-height: 1.9; font-weight: 300;
+    }
+    .gift-card__detail.open { display: block; }
+
+    /* ── PACKAGE ── */
+    .package { padding: 72px 0; background: var(--bg2); }
+    .package__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; max-width: 960px; margin: 0 auto; padding: 0 40px; align-items: center; }
+    .package__illust { display: flex; align-items: center; justify-content: center; }
+    .package__text h2 { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 20px; }
+    .package__list { list-style: none; margin-bottom: 24px; }
+    .package__list li { font-size: 14px; color: var(--text-md); font-weight: 300; line-height: 2.2; padding-left: 16px; position: relative; }
+    .package__list li::before { content: '·'; position: absolute; left: 0; color: var(--green); font-weight: 500; }
+    .package__badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .package__badge {
+      font-size: 11px; padding: 6px 14px; border-radius: 2px;
+      background: var(--green); color: var(--bg); letter-spacing: 0.08em;
+    }
+
+    /* ── B2B ── */
+    .b2b { background: var(--dark); padding: 80px 0; }
+    .b2b__eyebrow { font-size: 11px; color: var(--green-mid); letter-spacing: 0.22em; margin-bottom: 16px; text-align: center; }
+    .b2b__title { font-family: var(--serif); font-size: 28px; color: var(--bg); text-align: center; line-height: 1.55; margin-bottom: 48px; }
+    .b2b__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; margin: 0 auto 40px; padding: 0 40px; }
+    .b2b__card {
+      background: rgba(246,242,234,0.05); border: 0.5px solid rgba(246,242,234,0.08);
+      border-radius: var(--radius); padding: 28px 24px; text-align: center;
+    }
+    .b2b__card-qty { font-family: var(--serif); font-size: 26px; color: var(--green-mid); margin-bottom: 8px; }
+    .b2b__card-discount { font-size: 18px; color: var(--bg); font-weight: 500; margin-bottom: 10px; }
+    .b2b__card-perk { font-size: 12px; color: rgba(246,242,234,0.5); line-height: 1.8; font-weight: 300; }
+    .b2b__extras { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding: 0 40px; }
+    .b2b__extra {
+      font-size: 12px; color: rgba(246,242,234,0.45); letter-spacing: 0.08em;
+      padding: 8px 18px; border: 0.5px solid rgba(246,242,234,0.12); border-radius: 2px;
+    }
+
+    /* ── CONTACT FORM ── */
+    .contact { padding: 72px 0; background: var(--bg); }
+    .contact__form { max-width: 600px; margin: 0 auto; padding: 0 40px; }
+    .contact__title { font-family: var(--serif); font-size: 24px; font-weight: 400; text-align: center; margin-bottom: 36px; }
+    .contact__row { margin-bottom: 18px; }
+    .contact__row--half { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .contact__label { display: block; font-size: 12px; color: var(--text-md); letter-spacing: 0.06em; margin-bottom: 6px; }
+    .contact__input,
+    .contact__select,
+    .contact__textarea {
+      width: 100%; font-family: var(--sans); font-size: 13px; font-weight: 300;
+      padding: 11px 14px; border: 0.5px solid var(--gray-lt); border-radius: 2px;
+      background: var(--bg); color: var(--text); transition: border-color .2s;
+    }
+    .contact__input:focus,
+    .contact__select:focus,
+    .contact__textarea:focus { outline: none; border-color: var(--green); }
+    .contact__textarea { resize: vertical; min-height: 100px; }
+    .contact__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 28px; }
+    .contact__kakao {
+      display: inline-block; font-size: 12px; color: var(--text-md);
+      border: 0.5px solid var(--gray-lt); padding: 10px 24px; border-radius: 2px;
+      letter-spacing: 0.06em; transition: all .2s;
+    }
+    .contact__kakao:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .gift-hero { min-height: 320px; }
+      .gift-hero__title { font-size: 28px; }
+      .gift-hero__content { padding: 60px 24px; }
+      .recommend__tabs { flex-wrap: wrap; }
+      .package__grid { grid-template-columns: 1fr; gap: 32px; }
+      .package__illust { order: -1; }
+      .b2b__grid { grid-template-columns: 1fr; }
+      .b2b__title { font-size: 22px; }
+      .contact__row--half { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">한백담<span>HANBAEDAM</span></a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html" style="color:var(--green);">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="gift-hero">
+    <svg class="gift-hero__mountain" viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <circle cx="200" cy="80" r="1.5" fill="rgba(246,242,234,0.25)"/>
+      <circle cx="500" cy="50" r="1" fill="rgba(246,242,234,0.2)"/>
+      <circle cx="800" cy="90" r="1.5" fill="rgba(246,242,234,0.2)"/>
+      <circle cx="1050" cy="60" r="1" fill="rgba(246,242,234,0.15)"/>
+      <polygon points="0,360 120,160 220,240 360,80 500,200 640,100 780,220 900,120 1060,240 1200,360" fill="#1e4430" opacity="0.7"/>
+      <polygon points="0,360 80,220 180,280 320,140 440,250 580,160 720,260 860,180 1000,280 1200,360" fill="#245538" opacity="0.85"/>
+      <polygon points="320,140 345,118 370,140" fill="rgba(246,242,234,0.15)"/>
+      <polygon points="640,100 665,78 690,100" fill="rgba(246,242,234,0.12)"/>
+      <ellipse cx="600" cy="310" rx="500" ry="50" fill="rgba(246,242,234,0.03)"/>
+    </svg>
+    <div class="gift-hero__content">
+      <div class="gift-hero__eyebrow fade-in">GIFT · 선물하기</div>
+      <h1 class="gift-hero__title fade-in-2">마음을 담은 선물,<br>한백담</h1>
+      <p class="gift-hero__sub fade-in-3">한반도 청정 자연의 정성을 담아 드립니다</p>
+    </div>
+  </section>
+
+  <!-- RECOMMEND TABS -->
+  <section class="recommend">
+    <div class="container">
+      <div class="recommend__tabs">
+        <button class="recommend__tab active" data-tab="holiday">명절선물</button>
+        <button class="recommend__tab" data-tab="thanks">감사선물</button>
+        <button class="recommend__tab" data-tab="health">건강선물</button>
+      </div>
+      <div id="recommend-content">
+        <!-- JS로 렌더 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- GIFT PRODUCTS -->
+  <section class="gift-products">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-header__title">선물세트 라인업</div>
+          <div class="section-header__sub">한백담의 정성을 담은 선물</div>
+        </div>
+      </div>
+      <div class="product-grid" id="gift-products-grid"></div>
+    </div>
+  </section>
+
+  <!-- PACKAGE -->
+  <section class="package">
+    <div class="package__grid">
+      <div class="package__illust">
+        <svg viewBox="0 0 280 240" width="280" xmlns="http://www.w3.org/2000/svg">
+          <!-- 박스 본체 -->
+          <rect x="40" y="80" width="200" height="140" rx="4" fill="var(--bg)" stroke="var(--green)" stroke-width="1.5"/>
+          <!-- 박스 뚜껑 -->
+          <polygon points="30,80 140,40 250,80 140,68" fill="var(--green)" opacity="0.15"/>
+          <line x1="30" y1="80" x2="140" y2="40" stroke="var(--green)" stroke-width="1.5"/>
+          <line x1="250" y1="80" x2="140" y2="40" stroke="var(--green)" stroke-width="1.5"/>
+          <line x1="30" y1="80" x2="250" y2="80" stroke="var(--green)" stroke-width="1.5"/>
+          <!-- 리본 세로 -->
+          <rect x="130" y="40" width="20" height="180" rx="2" fill="var(--green)" opacity="0.2"/>
+          <!-- 리본 가로 -->
+          <rect x="40" y="140" width="200" height="16" rx="2" fill="var(--green)" opacity="0.15"/>
+          <!-- 리본 매듭 -->
+          <circle cx="140" cy="148" r="10" fill="var(--green)" opacity="0.3"/>
+          <!-- 한백담 로고 텍스트 -->
+          <text x="140" y="118" text-anchor="middle" font-family="'Noto Serif KR', serif" font-size="14" fill="var(--green)" opacity="0.6">한백담</text>
+          <!-- 잎 장식 -->
+          <ellipse cx="155" cy="55" rx="8" ry="4" transform="rotate(-30 155 55)" fill="var(--green-mid)" opacity="0.5"/>
+          <ellipse cx="125" cy="52" rx="8" ry="4" transform="rotate(30 125 52)" fill="var(--green-mid)" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="package__text">
+        <h2>한백담의 선물 패키지</h2>
+        <ul class="package__list">
+          <li>친환경 크라프트 박스에 정성스럽게 포장</li>
+          <li>손글씨 감사 카드 동봉 가능</li>
+          <li>리본 포장 선택 가능</li>
+        </ul>
+        <div class="package__badges">
+          <span class="package__badge">크라프트 박스</span>
+          <span class="package__badge">손글씨 카드</span>
+          <span class="package__badge">리본 포장</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B2B -->
+  <section class="b2b">
+    <div class="b2b__eyebrow fade-in">B2B · 기업 고객</div>
+    <h2 class="b2b__title fade-in-2">기업 선물, 한백담과 함께</h2>
+    <div class="b2b__grid">
+      <div class="b2b__card">
+        <div class="b2b__card-qty">30+</div>
+        <div class="b2b__card-discount">10% 할인</div>
+        <div class="b2b__card-perk">기업 대량 주문 기본 혜택</div>
+      </div>
+      <div class="b2b__card">
+        <div class="b2b__card-qty">50+</div>
+        <div class="b2b__card-discount">15% 할인</div>
+        <div class="b2b__card-perk">할인 + 맞춤 각인 서비스</div>
+      </div>
+      <div class="b2b__card">
+        <div class="b2b__card-qty">100+</div>
+        <div class="b2b__card-discount">20% 할인</div>
+        <div class="b2b__card-perk">할인 + 각인 + 전담 매니저 배정</div>
+      </div>
+    </div>
+    <div class="b2b__extras">
+      <span class="b2b__extra">세금계산서 발행</span>
+      <span class="b2b__extra">법인카드 결제</span>
+      <span class="b2b__extra">분할 납품 가능</span>
+    </div>
+  </section>
+
+  <!-- CONTACT FORM -->
+  <section class="contact" id="contact">
+    <div class="contact__form">
+      <h2 class="contact__title">선물 문의하기</h2>
+      <form id="gift-form">
+        <div class="contact__row contact__row--half">
+          <div>
+            <label class="contact__label">이름</label>
+            <input class="contact__input" type="text" name="name" required>
+          </div>
+          <div>
+            <label class="contact__label">연락처</label>
+            <input class="contact__input" type="tel" name="phone" required>
+          </div>
+        </div>
+        <div class="contact__row">
+          <label class="contact__label">이메일</label>
+          <input class="contact__input" type="email" name="email" required>
+        </div>
+        <div class="contact__row contact__row--half">
+          <div>
+            <label class="contact__label">주문 유형</label>
+            <select class="contact__select" name="type" required>
+              <option value="">선택해주세요</option>
+              <option value="personal">개인주문</option>
+              <option value="corporate">기업주문</option>
+              <option value="group">단체주문</option>
+            </select>
+          </div>
+          <div>
+            <label class="contact__label">희망 수량</label>
+            <input class="contact__input" type="number" name="quantity" min="1" placeholder="1">
+          </div>
+        </div>
+        <div class="contact__row">
+          <label class="contact__label">희망 상품</label>
+          <input class="contact__input" type="text" name="product" placeholder="예: 명절 선물세트">
+        </div>
+        <div class="contact__row">
+          <label class="contact__label">요청사항</label>
+          <textarea class="contact__textarea" name="message" placeholder="포장 방법, 배송일 등 요청사항을 자유롭게 작성해주세요."></textarea>
+        </div>
+        <div class="contact__actions">
+          <button type="submit" class="btn btn--primary" style="width:100%; text-align:center;">문의 접수하기</button>
+          <a href="#" class="contact__kakao">카카오채널로 빠른 상담 @한백담</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">한백담<span>HANBAEDAM · 韓白潭</span></div>
+      <div class="footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">공지사항</a>
+        <a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">
+      상호: 한백담 | 대표자: ○○○ | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제0000-강원홍천-0000호<br>
+      주소: 강원특별자치도 홍천군 ○○면 ○○로 000 | 고객센터: 000-0000-0000 | 이메일: hello@hanbaedam.com<br>
+      © 2025 HANBAEDAM. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    /* ── 상황별 추천 탭 ── */
+    const RECOMMEND_DATA = {
+      holiday: {
+        desc: '소중한 분께 홍천의 정성을 전하세요',
+        badge: '명절 추천',
+        name: '한백담 명절 선물세트',
+        price: '75,000원',
+        link: 'product-detail.html?id=6'
+      },
+      thanks: {
+        desc: '말로 다 못할 감사함을 자연으로 전합니다',
+        badge: '감사 추천',
+        name: '강원 잣 선물세트',
+        price: '38,000원',
+        link: 'product-detail.html?id=2'
+      },
+      health: {
+        desc: '가족 건강을 생각하는 마음을 담았습니다',
+        badge: '건강 추천',
+        name: '고구마 + 곤드레나물 세트',
+        price: '25,000원',
+        link: 'products.html'
+      }
+    };
+
+    function renderRecommend(key) {
+      const d = RECOMMEND_DATA[key];
+      document.getElementById('recommend-content').innerHTML = `
+        <p class="recommend__desc">${d.desc}</p>
+        <div class="recommend__card">
+          <div class="recommend__card-badge">${d.badge}</div>
+          <div class="recommend__card-name">${d.name}</div>
+          <div class="recommend__card-price">${d.price}</div>
+          <a href="${d.link}" class="recommend__card-link">자세히 보기 →</a>
+        </div>`;
+    }
+
+    document.querySelectorAll('.recommend__tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.recommend__tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderRecommend(tab.dataset.tab);
+      });
+    });
+
+    renderRecommend('holiday');
+
+    /* ── 선물세트 상품 렌더 (구성품 토글 포함) ── */
+    const giftProducts = PRODUCTS.filter(p => p.category === 'gift');
+    const GIFT_COMPONENTS = '고구마 2kg + 잣 300g + 곤드레나물 100g + 조청 500g';
+
+    document.getElementById('gift-products-grid').innerHTML = giftProducts.map(p => `
+      <div class="product-card">
+        <div class="product-card__img" style="background:${p.color};" onclick="location.href='product-detail.html?id=${p.id}'">
+          <div class="product-card__badge">${p.badge}</div>
+        </div>
+        <div class="product-card__name">${p.name}</div>
+        <div class="product-card__desc">${p.desc}</div>
+        <div class="product-card__price">${p.price.toLocaleString()}원 / ${p.unit}</div>
+        <button class="gift-card__toggle" onclick="this.nextElementSibling.classList.toggle('open'); this.textContent = this.nextElementSibling.classList.contains('open') ? '구성품 닫기' : '구성품 보기';">구성품 보기</button>
+        <div class="gift-card__detail">${GIFT_COMPONENTS}</div>
+      </div>`).join('');
+
+    /* ── 문의 폼 제출 ── */
+    document.getElementById('gift-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(this));
+      formData.date = new Date().toISOString();
+
+      const inquiries = JSON.parse(localStorage.getItem('hb_inquiries') || '[]');
+      inquiries.push(formData);
+      localStorage.setItem('hb_inquiries', JSON.stringify(inquiries));
+
+      alert('문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.');
+      this.reset();
+    });
+
+    /* ── 수량 50 이상 → B2B 안내 ── */
+    const qtyInput = document.querySelector('input[name="quantity"]');
+    qtyInput.addEventListener('change', function() {
+      if (parseInt(this.value) >= 50) {
+        document.querySelector('.b2b').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+          alert('기업 고객 혜택을 확인해보세요!');
+        }, 600);
+      }
+    });
+  </script>
+</body>
+</html>

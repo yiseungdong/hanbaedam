@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장바구니 — 한백담</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 40px; padding: 52px 0 80px; align-items: start; }
+    .cart-title { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 28px; }
+    .cart-item { display: flex; gap: 20px; align-items: center; padding: 20px 0; border-bottom: 0.5px solid var(--gray-lt); }
+    .cart-item__img { width: 80px; height: 80px; border-radius: var(--radius); flex-shrink: 0; }
+    .cart-item__name { font-size: 14px; font-weight: 400; margin-bottom: 4px; }
+    .cart-item__unit { font-size: 12px; color: var(--gray); margin-bottom: 10px; font-weight: 300; }
+    .cart-item__price { font-size: 14px; font-weight: 500; }
+    .cart-item__qty { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .qty-sm { width: 28px; height: 28px; border: 0.5px solid var(--gray-lt); background: transparent; font-size: 16px; border-radius: 2px; cursor: pointer; color: var(--text); font-family: var(--sans); }
+    .qty-sm-val { font-size: 13px; min-width: 20px; text-align: center; }
+    .cart-item__remove { margin-left: auto; font-size: 12px; color: var(--gray); cursor: pointer; border: none; background: none; font-family: var(--sans); }
+    .cart-item__remove:hover { color: #c0392b; }
+    .summary-box { background: var(--bg2); border-radius: var(--radius); padding: 28px; position: sticky; top: 90px; }
+    .summary-title { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-bottom: 20px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; color: var(--text-md); }
+    .summary-row.total { font-size: 16px; font-weight: 500; color: var(--text); border-top: 0.5px solid var(--gray-lt); margin-top: 12px; padding-top: 16px; }
+    .summary-row.total span:last-child { color: var(--green); }
+    .cart-empty { text-align: center; padding: 80px 0; }
+    .cart-empty p { font-size: 15px; color: var(--gray); margin-bottom: 24px; font-weight: 300; font-family: var(--serif); }
+    @media (max-width: 768px) { .cart-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">한백담<span>HANBAEDAM</span></a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="cart-layout">
+      <div>
+        <h1 class="cart-title">장바구니</h1>
+        <div id="cart-items"></div>
+      </div>
+      <div class="summary-box" id="cart-summary" style="display:none;">
+        <div class="summary-title">주문 요약</div>
+        <div id="summary-rows"></div>
+        <div class="summary-row total">
+          <span>총 결제금액</span>
+          <span id="summary-total"></span>
+        </div>
+        <button class="btn btn--primary" style="width:100%;margin-top:20px;text-align:center;padding:14px;" onclick="checkout()">
+          구매하기
+        </button>
+        <div style="font-size:11px;color:var(--gray);text-align:center;margin-top:12px;line-height:1.7;">
+          배송비 3,000원 (50,000원 이상 무료)<br>주문 후 1~2일 이내 홍천 직배송
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">한백담<span>HANBAEDAM · 韓白潭</span></div>
+      <div class="footer__links"><a href="#">이용약관</a><a href="#">고객센터</a></div>
+    </div>
+    <div class="footer__copy">© 2025 HANBAEDAM. All rights reserved.</div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    function renderCart() {
+      const cart = Cart.get();
+      const container = document.getElementById('cart-items');
+      const summary = document.getElementById('cart-summary');
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="cart-empty">
+            <p>장바구니가 비어 있습니다</p>
+            <a href="products.html" class="btn btn--outline">상품 보러가기</a>
+          </div>`;
+        summary.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = cart.map(item => {
+        const p = PRODUCTS.find(x => x.id === item.id);
+        if (!p) return '';
+        return `
+          <div class="cart-item">
+            <div class="cart-item__img" style="background:${p.color};"></div>
+            <div style="flex:1;">
+              <div class="cart-item__name">${p.name}</div>
+              <div class="cart-item__unit">${p.unit}</div>
+              <div class="cart-item__price">${(p.price * item.qty).toLocaleString()}원</div>
+              <div class="cart-item__qty">
+                <button class="qty-sm" onclick="updateQty(${p.id},-1)">−</button>
+                <span class="qty-sm-val">${item.qty}</span>
+                <button class="qty-sm" onclick="updateQty(${p.id},1)">+</button>
+              </div>
+            </div>
+            <button class="cart-item__remove" onclick="removeItem(${p.id})">삭제</button>
+          </div>`;
+      }).join('');
+
+      // 요약
+      summary.style.display = 'block';
+      const subtotal = Cart.total();
+      const delivery = subtotal >= 50000 ? 0 : 3000;
+      document.getElementById('summary-rows').innerHTML = `
+        <div class="summary-row"><span>상품금액</span><span>${subtotal.toLocaleString()}원</span></div>
+        <div class="summary-row"><span>배송비</span><span>${delivery === 0 ? '무료' : delivery.toLocaleString()+'원'}</span></div>
+      `;
+      document.getElementById('summary-total').textContent = `${(subtotal + delivery).toLocaleString()}원`;
+    }
+
+    function updateQty(id, d) {
+      const cart = Cart.get();
+      const idx = cart.findIndex(i => i.id === id);
+      if (idx > -1) {
+        cart[idx].qty = Math.max(1, cart[idx].qty + d);
+        localStorage.setItem('hb_cart', JSON.stringify(cart));
+        Cart.updateBadge();
+        renderCart();
+      }
+    }
+
+    function removeItem(id) {
+      Cart.remove(id);
+      renderCart();
+    }
+
+    function checkout() {
+      alert('결제 기능은 서버 연동 후 활성화됩니다.\n(토스페이먼츠 / 아임포트 연동 예정)');
+    }
+
+    renderCart();
+  </script>
+</body>
+</html>

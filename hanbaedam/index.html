@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한백담 — 한라에서 백두까지, 자연이 키운 정직한 먹거리</title>
+  <meta name="description" content="강원도 홍천의 청정한 땅에서 농부의 손이 키운 농산물과 가공식품. 한백담은 자연이 허락한 것들만 담습니다.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── HERO ── */
+    .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; }
+    .hero__visual {
+      background: #1e4430; position: relative; overflow: hidden;
+      display: flex; align-items: flex-end;
+    }
+    .hero__mountain { position: absolute; bottom: 0; width: 100%; }
+    .hero__tag {
+      position: absolute; bottom: 28px; left: 28px;
+      font-size: 11px; color: rgba(246,242,234,0.6);
+      letter-spacing: 0.16em; font-weight: 300;
+    }
+    .hero__text { padding: 64px 52px; display: flex; flex-direction: column; justify-content: center; }
+    .hero__eyebrow { font-size: 11px; color: var(--gray); letter-spacing: 0.2em; margin-bottom: 20px; }
+    .hero__title { font-size: 34px; line-height: 1.55; margin-bottom: 20px; }
+    .hero__title em { font-style: normal; color: var(--green); }
+    .hero__desc { font-size: 13px; color: var(--text-md); line-height: 1.95; margin-bottom: 32px; max-width: 340px; }
+    .hero__btns { display: flex; gap: 12px; }
+
+    /* ── STORY STRIP ── */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .story__visual { background: #2A3A2E; min-height: 420px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .story__text { background: var(--dark); padding: 64px 52px; display: flex; flex-direction: column; justify-content: center; }
+    .story__eyebrow { font-size: 10px; color: var(--green-mid); letter-spacing: 0.22em; margin-bottom: 16px; }
+    .story__title { font-family: var(--serif); font-size: 26px; color: var(--bg); line-height: 1.7; margin-bottom: 22px; }
+    .story__body { font-size: 13px; color: rgba(246,242,234,0.55); line-height: 2.0; margin-bottom: 30px; font-weight: 300; }
+
+    /* ── SEASON BANNER (기존 green-mid) ── */
+    .season-banner { background: var(--green-mid); padding: 40px 40px; display: flex; justify-content: space-between; align-items: center; }
+    .season-banner__text { font-family: var(--serif); font-size: 22px; color: var(--bg); line-height: 1.65; }
+    .season-banner__text small { display: block; font-size: 11px; font-family: var(--sans); font-weight: 300; opacity: 0.75; letter-spacing: 0.14em; margin-bottom: 8px; }
+    .season-banner__btns { display: flex; gap: 12px; }
+
+    /* ── GIFT SEASON BANNER ── */
+    .gift-season-banner { background: var(--beige); padding: 48px 40px; display: flex; justify-content: space-between; align-items: center; }
+    .gift-season-banner__text h2 { font-family: var(--serif); font-size: 24px; color: var(--bg); line-height: 1.55; margin-bottom: 8px; }
+    .gift-season-banner__text p { font-size: 13px; color: rgba(246,242,234,0.75); font-weight: 300; letter-spacing: 0.04em; }
+
+    /* ── NOTICE BAR ── */
+    .notice { background: var(--bg2); border-bottom: 0.5px solid var(--gray-lt); padding: 10px 40px; font-size: 12px; color: var(--gray); letter-spacing: 0.06em; text-align: center; }
+
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero__visual { min-height: 300px; }
+      .hero__text { padding: 40px 24px; }
+      .hero__title { font-size: 26px; }
+      .story { grid-template-columns: 1fr; }
+      .story__visual { min-height: 260px; }
+      .story__text { padding: 40px 24px; }
+      .season-banner { flex-direction: column; gap: 20px; text-align: center; }
+      .gift-season-banner { flex-direction: column; gap: 20px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">
+      한백담
+      <span>HANBAEDAM</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <!-- NOTICE -->
+  <div class="notice">봄 수확 상품 입고 완료 · 홍천 직배송 · 기업 선물 단체주문 문의: 카카오채널 @한백담</div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__visual">
+      <svg class="hero__mountain" viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <!-- 별 -->
+        <circle cx="150" cy="80" r="1.5" fill="rgba(246,242,234,0.25)"/>
+        <circle cx="350" cy="50" r="1" fill="rgba(246,242,234,0.2)"/>
+        <circle cx="520" cy="90" r="1.5" fill="rgba(246,242,234,0.2)"/>
+        <circle cx="620" cy="60" r="1" fill="rgba(246,242,234,0.15)"/>
+        <circle cx="80"  cy="110" r="1" fill="rgba(246,242,234,0.15)"/>
+        <!-- 배경 산 -->
+        <polygon points="0,360 100,140 180,220 280,80 360,180 440,100 560,200 660,120 720,360" fill="#1a3a28" opacity="0.8"/>
+        <!-- 앞 산 -->
+        <polygon points="0,360 60,190 140,260 240,120 320,230 420,150 500,240 580,160 660,240 720,360" fill="#1e4430" opacity="0.9"/>
+        <!-- 눈덮인 봉우리 -->
+        <polygon points="240,120 260,100 280,120" fill="rgba(246,242,234,0.2)"/>
+        <polygon points="420,150 440,128 460,150" fill="rgba(246,242,234,0.15)"/>
+        <!-- 안개 -->
+        <ellipse cx="360" cy="300" rx="320" ry="60" fill="rgba(246,242,234,0.04)"/>
+      </svg>
+      <div class="hero__tag">강원도 홍천 · HONGCHEON, GANGWON</div>
+    </div>
+    <div class="hero__text">
+      <div class="hero__eyebrow fade-in">HANBAEDAM · 韓白潭</div>
+      <h1 class="hero__title fade-in-2">
+        한라에서 백두까지,<br>
+        <em>자연이 키운</em><br>
+        정직한 먹거리
+      </h1>
+      <p class="hero__desc fade-in-3">
+        강원도 홍천의 청정한 땅에서<br>
+        농부의 손이 정성껏 키운 농산물과<br>
+        가공식품을 그대로 담아 드립니다.
+      </p>
+      <div class="hero__btns fade-in-4">
+        <a href="products.html" class="btn btn--primary">상품 보기</a>
+        <a href="about.html" class="btn btn--outline">브랜드 스토리</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- BAND -->
+  <div class="band">
+    <span>무농약 · 친환경 재배</span>
+    <span>|</span>
+    <span>홍천 직배송</span>
+    <span>|</span>
+    <span>기업 선물 맞춤 제작</span>
+    <span>|</span>
+    <span>정기구독 서비스</span>
+  </div>
+
+  <!-- PRODUCTS (gift 제외) -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-header__title">이번 시즌 상품</div>
+          <div class="section-header__sub">2025 봄 · 홍천 직배송</div>
+        </div>
+        <a href="products.html" class="section-header__more">전체보기</a>
+      </div>
+      <div class="product-grid" id="home-products"></div>
+    </div>
+  </section>
+
+  <!-- GIFT SEASON BANNER (시즌일 때만 표시) -->
+  <div class="gift-season-banner" id="gift-season-banner" style="display:none;">
+    <div class="gift-season-banner__text">
+      <h2>선물의 계절이 왔습니다</h2>
+      <p>한백담의 정성스러운 선물세트를 만나보세요</p>
+    </div>
+    <a href="gift.html" class="btn btn--dark">선물세트 보기</a>
+  </div>
+
+  <!-- GIFT PRODUCTS (시즌일 때만 표시) -->
+  <section class="section" id="gift-season-products" style="display:none;">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-header__title">선물세트</div>
+          <div class="section-header__sub">마음을 담은 한백담 선물</div>
+        </div>
+        <a href="gift.html" class="section-header__more">전체보기</a>
+      </div>
+      <div class="product-grid" id="home-gift-products"></div>
+    </div>
+  </section>
+
+  <!-- STORY STRIP -->
+  <section class="story">
+    <div class="story__visual">
+      <svg viewBox="0 0 500 420" width="100%" height="100%" style="position:absolute;top:0;left:0;" preserveAspectRatio="xMidYMid slice">
+        <polygon points="0,420 80,160 160,280 260,80 340,220 440,140 500,420" fill="#2A5C3F" opacity="0.5"/>
+        <polygon points="0,420 40,260 120,340 220,180 300,300 400,220 500,420" fill="#1e4430" opacity="0.4"/>
+        <circle cx="260" cy="80" r="4" fill="rgba(198,220,168,0.3)"/>
+        <circle cx="160" cy="180" r="2.5" fill="rgba(198,220,168,0.2)"/>
+        <circle cx="380" cy="120" r="2" fill="rgba(198,220,168,0.2)"/>
+      </svg>
+    </div>
+    <div class="story__text">
+      <div class="story__eyebrow">BRAND STORY</div>
+      <h2 class="story__title">
+        한라에서 백두까지<br>
+        한반도의 청정함을<br>
+        한 그릇에 담습니다
+      </h2>
+      <p class="story__body">
+        강원도 홍천은 한반도의 중심에 자리한 땅입니다.<br>
+        백두대간의 깊은 숨결이 닿은 이곳에서<br>
+        우리는 자연이 허락한 것들만 담습니다.<br><br>
+        농부의 땀과 계절의 리듬을 그대로 식탁 위에.
+      </p>
+      <a href="about.html" class="btn btn--ghost" style="width:fit-content;">이야기 읽기 →</a>
+    </div>
+  </section>
+
+  <!-- PRODUCERS -->
+  <section class="section section--tinted">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-header__title">생산자 이야기</div>
+          <div class="section-header__sub">얼굴이 보이는 먹거리</div>
+        </div>
+        <a href="producers.html" class="section-header__more">전체보기</a>
+      </div>
+      <div class="producer-grid">
+        <div class="producer-card">
+          <div class="producer-card__avatar" style="background:var(--green);">김</div>
+          <div class="producer-card__name">김○○ 농부</div>
+          <div class="producer-card__loc">홍천군 내면 · 고구마 재배 12년</div>
+          <div class="producer-card__quote">"땅이 건강해야 작물도 건강합니다. 화학비료 없이 키운 고구마를 자신있게 드립니다."</div>
+        </div>
+        <div class="producer-card">
+          <div class="producer-card__avatar" style="background:var(--green-mid);">이</div>
+          <div class="producer-card__name">이○○ 농부</div>
+          <div class="producer-card__loc">홍천군 서석면 · 잣 채취 20년</div>
+          <div class="producer-card__quote">"백두대간 자락의 잣나무숲에서 직접 채취합니다. 자연이 익힌 속도 그대로입니다."</div>
+        </div>
+        <div class="producer-card">
+          <div class="producer-card__avatar" style="background:var(--beige);">박</div>
+          <div class="producer-card__name">박○○ 농부</div>
+          <div class="producer-card__loc">홍천군 두촌면 · 나물 채취·가공</div>
+          <div class="producer-card__quote">"봄이 오면 산을 읽습니다. 좋은 나물은 억지로 키우는 게 아니라 기다리는 겁니다."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEASON GIFT BANNER (시즌일 때만 표시) -->
+  <div class="season-banner" id="season-gift-banner" style="display:none;">
+    <div class="season-banner__text">
+      <small>GIFT · 선물하기</small>
+      명절과 감사의 마음을<br>한백담의 정직한 자연으로
+    </div>
+    <div class="season-banner__btns">
+      <a href="gift.html" class="btn btn--dark">선물세트 보기</a>
+      <a href="gift.html#contact" class="btn btn--ghost">단체 주문 문의</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">
+        한백담
+        <span>HANBAEDAM · 韓白潭</span>
+      </div>
+      <div class="footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">공지사항</a>
+        <a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">
+      상호: 한백담 | 대표자: ○○○ | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제0000-강원홍천-0000호<br>
+      주소: 강원특별자치도 홍천군 ○○면 ○○로 000 | 고객센터: 000-0000-0000 | 이메일: hello@hanbaedam.com<br>
+      © 2025 HANBAEDAM. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    // 홈 상품: gift 제외, 최대 6개
+    document.getElementById('home-products').innerHTML =
+      PRODUCTS.filter(p => p.category !== 'gift').slice(0, 6).map(renderProductCard).join('');
+
+    // 선물 시즌이면 배너 + 선물세트 섹션 표시
+    if (isGiftSeason()) {
+      document.getElementById('gift-season-banner').style.display = 'flex';
+      document.getElementById('season-gift-banner').style.display = 'flex';
+      document.getElementById('gift-season-products').style.display = 'block';
+      document.getElementById('home-gift-products').innerHTML =
+        PRODUCTS.filter(p => p.category === 'gift').map(renderProductCard).join('');
+    }
+  </script>
+</body>
+</html>
