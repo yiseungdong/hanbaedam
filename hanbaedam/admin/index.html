@@ -818,14 +818,11 @@
   const uploadZone = document.getElementById('upload-zone');
   const photoInput = document.getElementById('photo-input');
 
-  // 브라우저 기본 파일 열기 동작 차단 (body 레벨 — stopPropagation 제거로 드롭존 이벤트 전파 허용)
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    document.body.addEventListener(eventName, (e) => {
-      e.preventDefault();
-    }, false);
-  });
+  // 브라우저 기본 동작 차단 (window 레벨 — 파일을 브라우저에 드롭해도 열리지 않도록)
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => e.preventDefault());
 
-  // 드롭존 이벤트 (하나씩만 등록)
+  // 드롭존 이벤트
   uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -838,20 +835,17 @@
     uploadZone.classList.remove('dragover');
   });
 
-  uploadZone.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
     uploadZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
   });
 
-  photoInput.addEventListener('change', e => {
-    if (e.target.files.length) handleFile(e.target.files[0]);
+  photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
   });
 
   function handleFile(file) {

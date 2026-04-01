@@ -17,11 +17,9 @@
       font-family: var(--sans);
     }
     .filter-btn.active, .filter-btn:hover { background: var(--green); color: var(--bg); border-color: var(--green); }
-    .product-grid-full { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-    .product-grid-full .product-card__img { width: 100%; aspect-ratio: 4/5; position: relative; overflow: hidden; }
-    .product-grid-full .product-card__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-    @media (max-width: 1024px) { .product-grid-full { grid-template-columns: repeat(3,1fr); } }
-    @media (max-width: 768px) { .product-grid-full { grid-template-columns: repeat(2,1fr); } }
+    .product-grid { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 768px) { .product-grid { grid-template-columns: repeat(2,1fr); } }
   </style>
 </head>
 <body>
@@ -51,7 +49,7 @@
         <button class="filter-btn" data-filter="processed">가공식품</button>
         <button class="filter-btn" data-filter="gift">선물세트</button>
       </div>
-      <div class="product-grid-full" id="products-container"></div>
+      <div class="product-grid" id="products-container"></div>
     </div>
   </div>
 
