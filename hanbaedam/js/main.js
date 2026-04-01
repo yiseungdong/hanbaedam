@@ -145,13 +145,13 @@ const Cart = {
 
 /* ── 상품 카드 렌더 ── */
 function renderProductCard(p) {
-  const imgContent = p.image
+  const imgHtml = p.image
     ? `<img src="${p.image}" alt="${p.name}">`
     : '';
   return `
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
       <div class="product-card__img" style="background:${p.color};">
-        ${imgContent}
+        ${imgHtml}
         <div class="product-card__badge">${p.badge}</div>
       </div>
       <div class="product-card__name">${p.name}</div>

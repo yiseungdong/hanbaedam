@@ -284,7 +284,10 @@
     // 서버 API에서 상품 가져오기, 실패 시 로컬 데이터 사용
     fetch('/api/products')
       .then(res => res.json())
-      .then(products => renderHome(products))
+      .then(products => {
+        console.log('[index.html] API 응답 데이터:', products.map(p => ({ id: p.id, name: p.name, image: p.image })));
+        renderHome(products);
+      })
       .catch(() => renderHome(PRODUCTS));
   </script>
 </body>
