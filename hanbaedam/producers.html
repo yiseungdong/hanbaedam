@@ -17,7 +17,7 @@
     .producer-hero__content { position: relative; z-index: 1; padding: 80px 40px; }
     .producer-hero__eyebrow { font-size: 11px; color: var(--green-mid); letter-spacing: 0.24em; margin-bottom: 20px; }
     .producer-hero__title { font-family: var(--serif); font-size: 38px; color: var(--bg); line-height: 1.55; margin-bottom: 18px; }
-    .producer-hero__sub { font-size: 14px; color: rgba(246,242,234,0.5); font-weight: 300; letter-spacing: 0.06em; }
+    .producer-hero__sub { font-size: 14px; color: rgba(246,242,234,0.5); font-weight: 400; letter-spacing: 0.06em; }
 
     /* ── PRODUCER LIST ── */
     .producer-list { padding: 72px 0; }
@@ -35,14 +35,14 @@
     }
     .producer-item__info { flex: 1; }
     .producer-item__name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
-    .producer-item__meta { font-size: 12px; color: var(--gray); letter-spacing: 0.04em; margin-bottom: 8px; }
+    .producer-item__meta { font-size: 12px; color: var(--gray); font-weight: 400; letter-spacing: 0.04em; margin-bottom: 8px; }
     .producer-item__method {
       display: inline-block; font-size: 10px; padding: 3px 10px; border-radius: 2px;
       background: #EAF3DE; color: #27500A; letter-spacing: 0.06em; margin-bottom: 10px;
     }
     .producer-item__quote {
       font-size: 13px; color: var(--text-md); font-family: var(--serif);
-      line-height: 1.8; font-weight: 300;
+      line-height: 1.8; font-weight: 400;
     }
     .producer-item__toggle {
       flex-shrink: 0; font-size: 12px; color: var(--green); background: transparent;
@@ -59,10 +59,10 @@
     .producer-item__detail.open { display: block; }
     .producer-item__story {
       font-size: 14px; color: var(--text-md); line-height: 2.0;
-      font-weight: 300; margin-bottom: 20px;
+      font-weight: 400; margin-bottom: 20px;
     }
     .producer-item__products-title {
-      font-size: 12px; color: var(--gray); letter-spacing: 0.1em; margin-bottom: 12px;
+      font-size: 12px; color: var(--gray); font-weight: 500; letter-spacing: 0.1em; margin-bottom: 12px;
     }
     .producer-item__products {
       display: flex; gap: 16px; flex-wrap: wrap;
@@ -74,8 +74,8 @@
     .producer-item__product-img {
       width: 100%; aspect-ratio: 4/5; border-radius: var(--radius); margin-bottom: 8px;
     }
-    .producer-item__product-name { font-size: 13px; font-weight: 400; margin-bottom: 2px; }
-    .producer-item__product-price { font-size: 12px; color: var(--gray); font-weight: 300; }
+    .producer-item__product-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+    .producer-item__product-price { font-size: 12px; color: var(--gray); font-weight: 400; }
 
     /* ── VALUES ── */
     .values { background: var(--bg2); padding: 72px 0; }
@@ -83,22 +83,22 @@
     .value-card { text-align: center; padding: 32px 20px; }
     .value-card__num { font-family: var(--serif); font-size: 32px; color: var(--green); opacity: 0.4; margin-bottom: 12px; }
     .value-card__title { font-size: 16px; font-weight: 500; margin-bottom: 10px; }
-    .value-card__desc { font-size: 13px; color: var(--gray); line-height: 1.8; font-weight: 300; }
+    .value-card__desc { font-size: 13px; color: var(--gray); line-height: 1.8; font-weight: 400; }
 
     /* ── JOIN FORM ── */
     .join { background: var(--dark); padding: 80px 0; }
     .join__content { max-width: 560px; margin: 0 auto; padding: 0 40px; }
     .join__eyebrow { font-size: 11px; color: var(--green-mid); letter-spacing: 0.22em; margin-bottom: 16px; text-align: center; }
     .join__title { font-family: var(--serif); font-size: 28px; color: var(--bg); text-align: center; line-height: 1.55; margin-bottom: 10px; }
-    .join__sub { font-size: 13px; color: rgba(246,242,234,0.5); text-align: center; font-weight: 300; margin-bottom: 36px; }
+    .join__sub { font-size: 13px; color: rgba(246,242,234,0.5); text-align: center; font-weight: 400; margin-bottom: 36px; }
     .join__row { margin-bottom: 16px; }
     .join__row--half { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .join__label { display: block; font-size: 12px; color: rgba(246,242,234,0.5); letter-spacing: 0.06em; margin-bottom: 6px; }
+    .join__label { display: block; font-size: 12px; color: rgba(246,242,234,0.7); font-weight: 400; letter-spacing: 0.06em; margin-bottom: 6px; }
     .join__input,
     .join__textarea {
-      width: 100%; font-family: var(--sans); font-size: 13px; font-weight: 300;
+      width: 100%; font-family: var(--sans); font-size: 13px; font-weight: 400;
       padding: 11px 14px; border: 0.5px solid rgba(246,242,234,0.2); border-radius: 2px;
-      background: transparent; color: var(--bg); transition: border-color .2s;
+      background: rgba(246,242,234,0.05); color: rgba(246,242,234,0.9); transition: border-color .2s;
     }
     .join__input::placeholder,
     .join__textarea::placeholder { color: rgba(246,242,234,0.25); }
@@ -171,7 +171,7 @@
   <!-- VALUES -->
   <section class="values">
     <div style="text-align:center; margin-bottom:40px; padding: 0 40px;">
-      <h2 class="serif" style="font-size:22px; font-weight:400; color:var(--text);">한백담이 생산자를 선택하는 기준</h2>
+      <h2 class="serif" style="font-size:22px; font-weight:500; color:var(--text);">한백담이 생산자를 선택하는 기준</h2>
     </div>
     <div class="values-grid">
       <div class="value-card">
