@@ -17,9 +17,10 @@
 - [x] producers.html 생산자 소개 페이지 ✅
 - [ ] 실제 상품 데이터 입력 (사진 포함)
 
-### Phase 2 — 백엔드 + 결제 [미시작]
-- [ ] server.js (Node.js + Express)
-- [ ] SQLite DB 연동
+### Phase 2 — 백엔드 + 결제 [진행중]
+- [x] server.js (Node.js + Express) ✅
+- [x] SQLite DB 연동 ✅
+- [x] 상품 API 연동 (products.html, gift.html) ✅
 - [ ] 토스페이먼츠 결제 연동
 - [ ] 회원가입 / 로그인
 - [ ] 주문 관리 시스템
@@ -70,6 +71,12 @@
 4. 새 채팅 시작 시 첫 메시지: "hanbaedam-masterplan.md 읽어줘"
 5. 채팅창이 차기 전에 마스터플랜 업데이트 후 저장
 
+## 서버 실행 방법
+- 개발: node server.js
+- 접속: http://localhost:3000
+- 어드민: http://localhost:3000/admin
+- API 확인: http://localhost:3000/api/products
+
 ## 새 채팅 시작 방법
 새 채팅창에서 Claude Code 실행 후 첫 메시지:
 "C:\Users\이승동\Desktop\프로그래밍\hanbaedam\public\data\hanbaedam-masterplan.md 파일을 읽고 프로젝트 현황을 파악해줘"
@@ -86,3 +93,11 @@
 - 2025-04-01: 카카오 알림톡 3인 동시 발송 Phase 2 필수 항목 추가.
 - 2025-04-01: 멀티채널 통합 주문 대시보드 Phase 2 필수 항목 추가.
 - 2026-04-01: 어드민 사진 업로드 + 보정 기능 완성. 구매 후기 시스템 Phase 2 필수 항목 추가.
+- 2025-04-01: Phase 2 백엔드 서버 구축 완성
+- 2025-04-01: 사진 업로드 + 보정 기능 완성
+- 2025-04-01: 상품 페이지 서버 API 연동 완성
+- 2025-04-01: 상품 카드 이미지 수정 진행중
+- 2025-04-01: B2C 주력/B2B 보조 구조 확정
+- 2025-04-01: 도메인/호스팅 방향 확정 (가비아+Render)
+- 2025-04-01: 카카오 알림톡 3인 동시발송 요구사항 확정
+- 2025-04-01: 구매 후기 시스템 요구사항 확정
