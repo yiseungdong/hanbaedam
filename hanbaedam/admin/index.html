@@ -377,12 +377,16 @@
         핸드폰이나 카메라로 찍은 사진을 업로드하고 한백담 스타일로 보정하세요
       </div>
 
-      <!-- 업로드 존 -->
-      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('photo-input').click()">
-        <div class="upload-zone__text">사진을 드래그하거나 클릭해서 선택</div>
-        <div class="upload-zone__sub">JPG, PNG, WEBP / 최대 10MB / 핸드폰 사진 OK</div>
+      <!-- 사진 선택 -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <img id="imagePreview" src="" style="display:none;max-width:280px;max-height:350px;border-radius:var(--radius);border:0.5px solid var(--gray-lt);margin-bottom:12px;">
+        <div id="noImageMsg" style="font-size:13px;color:var(--gray);margin-bottom:12px;">선택된 사진이 없습니다</div>
+        <button type="button" onclick="document.getElementById('photo-input').click()"
+          style="padding:10px 24px;background:var(--green);color:var(--bg);border:none;border-radius:2px;font-size:13px;cursor:pointer;font-family:var(--sans);letter-spacing:0.04em;">
+          사진 선택 / 교체
+        </button>
       </div>
-      <input type="file" id="photo-input" accept="image/*" style="display:none">
+      <input type="file" id="photo-input" accept="image/jpg,image/jpeg,image/png,image/webp" style="display:none">
 
       <!-- 보정 패널 -->
       <div class="edit-panel" id="edit-panel">
@@ -813,44 +817,19 @@
   // [테스트 방법]
   // 1. 어드민 열기: http://localhost:3000/admin
   // 2. 사이드바에서 "사진 관리" 클릭
-  // 3. 이미지 파일을 드롭존(점선 영역)에 드래그해서 놓기 → 원본/보정후 캔버스에 표시되는지 확인
-  // 4. 다른 이미지를 다시 드롭존에 드래그 → 기존 이미지가 새 이미지로 교체되는지 확인
+  // 3. "사진 선택 / 교체" 버튼 클릭 → 파일 선택 → 미리보기 + 캔버스에 표시되는지 확인
+  // 4. 다시 버튼 클릭 → 다른 파일 선택 → 기존 이미지가 새 이미지로 교체되는지 확인
   let originalImage = null;
   let currentFile = null;
   let applyingPhotoUrl = '';
 
-  // 드래그앤드롭
-  const uploadZone = document.getElementById('upload-zone');
   const photoInput = document.getElementById('photo-input');
-
-  // 브라우저 기본 동작 차단 (window 레벨 — 파일을 브라우저에 드롭해도 열리지 않도록)
-  window.addEventListener('dragover', (e) => e.preventDefault());
-  window.addEventListener('drop', (e) => e.preventDefault());
-
-  // 드롭존 이벤트
-  uploadZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadZone.classList.add('dragover');
-  });
-
-  uploadZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadZone.classList.remove('dragover');
-  });
-
-  uploadZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
 
   photoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (file) handleFile(file);
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('이미지 파일만 선택 가능합니다.'); return; }
+    handleFile(file);
   });
 
   function handleFile(file) {
@@ -871,9 +850,17 @@
       c.width = c.width;
     });
 
-    // 5. 새 이미지 로드 → 캔버스 다시 그리기
+    // 5. 새 이미지 로드 → 미리보기 + 캔버스 다시 그리기
     const reader = new FileReader();
     reader.onload = e => {
+      // 미리보기 업데이트
+      const preview = document.getElementById('imagePreview');
+      const noMsg = document.getElementById('noImageMsg');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      if (noMsg) noMsg.style.display = 'none';
+
+      // 캔버스 보정용 이미지 로드
       const img = new Image();
       img.onload = () => {
         originalImage = img;
