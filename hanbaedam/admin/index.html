@@ -688,23 +688,22 @@
 
   // ── 사진 관리 ──
   let originalImage = null;
+  let currentFile = null;
   let applyingPhotoUrl = '';
 
   // 드래그앤드롭
   const uploadZone = document.getElementById('upload-zone');
+  const photoInput = document.getElementById('photo-input');
 
-  // 브라우저 기본 파일 열기 동작 완전 차단
+  // 브라우저 기본 파일 열기 동작 완전 차단 (body 레벨)
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, false);
     document.body.addEventListener(eventName, (e) => {
       e.preventDefault();
       e.stopPropagation();
     }, false);
   });
 
+  // 드롭존 이벤트 (하나씩만 등록)
   uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -717,33 +716,41 @@
     uploadZone.classList.remove('dragover');
   });
 
+  uploadZone.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
     uploadZone.classList.remove('dragover');
     if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
   });
-  document.getElementById('photo-input').addEventListener('change', e => {
+
+  photoInput.addEventListener('change', e => {
     if (e.target.files.length) handleFile(e.target.files[0]);
   });
 
   function handleFile(file) {
     if (file.size > 10 * 1024 * 1024) { alert('10MB 이하 파일만 업로드 가능합니다'); return; }
 
-    // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
-    document.getElementById('photo-input').value = '';
+    // 1. currentFile 새 파일로 교체
+    currentFile = file;
 
-    // 기존 캔버스 완전 초기화
-    ['canvas-original', 'canvas-preview'].forEach(id => {
-      const c = document.getElementById(id);
-      const ctx = c.getContext('2d');
-      ctx.filter = 'none';
-      ctx.clearRect(0, 0, c.width, c.height);
-    });
+    // 2. 파일 입력 초기화 (같은 파일 재선택 가능하도록)
+    photoInput.value = '';
 
-    // 기존 이미지 참조 해제
+    // 3. 기존 이미지 참조 해제
     originalImage = null;
 
+    // 4. 캔버스 완전 초기화 (width 재할당으로 GPU 버퍼까지 리셋)
+    ['canvas-original', 'canvas-preview'].forEach(id => {
+      const c = document.getElementById(id);
+      c.width = c.width;
+    });
+
+    // 5. 새 이미지 로드 → 캔버스 다시 그리기
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
