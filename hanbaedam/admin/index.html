@@ -133,6 +133,7 @@
       <li><a href="#" onclick="showTab('orders')">주문 관리</a></li>
       <li><a href="#" onclick="showTab('inventory')">재고 관리</a></li>
       <li><a href="#" onclick="showTab('photos')">사진 관리</a></li>
+      <li><a href="#" onclick="showTab('reviews')">후기 관리</a></li>
       <li><a href="../index.html" target="_blank" style="margin-top:20px;border-top:0.5px solid rgba(255,255,255,0.08);padding-top:16px;">← 쇼핑몰 보기</a></li>
     </ul>
   </aside>
@@ -379,7 +380,54 @@
       </div>
     </div>
 
+    <div id="tab-reviews" style="display:none;">
+      <div class="admin-header">
+        <div class="admin-title">후기 관리</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:20px;">
+        <select id="review-filter" onchange="loadAdminReviews()" style="padding:8px 12px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:12px;font-family:var(--sans);background:var(--bg);">
+          <option value="all">전체 후기</option>
+          <option value="best">베스트 후기</option>
+          <option value="hidden">숨김 후기</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>상품</th>
+              <th>작성자</th>
+              <th>별점</th>
+              <th>내용</th>
+              <th>사진</th>
+              <th>상태</th>
+              <th>작성일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="reviews-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- 후기 답변 모달 -->
+<div class="modal-overlay" id="reply-modal">
+  <div class="modal" style="width:500px;">
+    <div class="modal-title">관리자 답변</div>
+    <input type="hidden" id="reply-review-id">
+    <div class="form-group">
+      <label>답변 내용</label>
+      <textarea id="reply-content" rows="4" placeholder="고객 후기에 대한 답변을 작성하세요"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--outline" onclick="document.getElementById('reply-modal').classList.remove('open')">취소</button>
+      <button class="btn btn--primary" onclick="submitReply()">답변 등록</button>
+    </div>
+  </div>
 </div>
 
 <!-- 상품에 적용 모달 -->
@@ -439,7 +487,7 @@
 <script>
   let adminProducts = [];
 
-  const allTabs = ['dashboard','products','channels','orders','inventory','photos'];
+  const allTabs = ['dashboard','products','channels','orders','inventory','photos','reviews'];
   const CAT_LABEL = {fresh:'신선식품',processed:'가공식품',gift:'선물세트'};
 
   // ── 서버에서 상품 목록 로드 ──
@@ -461,6 +509,7 @@
     if (name === 'dashboard') loadProducts().then(() => renderDashboard());
     if (name === 'inventory') loadProducts().then(() => renderInventory());
     if (name === 'photos') loadPhotos();
+    if (name === 'reviews') loadAdminReviews();
   }
 
   function renderDashboard() {
@@ -941,6 +990,101 @@
         document.getElementById('apply-photo-modal').classList.remove('open');
       })
       .catch(() => alert('적용 실패'));
+  }
+
+  // ── 후기 관리 ──
+  let adminReviews = [];
+
+  function loadAdminReviews() {
+    fetch('/api/admin/reviews')
+      .then(r => r.json())
+      .then(reviews => {
+        adminReviews = reviews;
+        renderReviewsTable();
+      })
+      .catch(() => alert('후기 목록을 불러올 수 없습니다'));
+  }
+
+  function renderReviewsTable() {
+    const filter = document.getElementById('review-filter').value;
+    let list = adminReviews;
+    if (filter === 'best') list = list.filter(r => r.is_best);
+    else if (filter === 'hidden') list = list.filter(r => r.is_hidden);
+
+    const tbody = document.getElementById('reviews-tbody');
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--gray);">후기가 없습니다</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(r => {
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const imgs = r.images && r.images.length ? r.images.map(u => `<img src="${u}" style="width:36px;height:36px;object-fit:cover;border-radius:2px;margin-right:4px;">`).join('') : '-';
+      const badges = [];
+      if (r.is_best) badges.push('<span class="badge badge--on">베스트</span>');
+      if (r.is_hidden) badges.push('<span class="badge badge--off">숨김</span>');
+      if (r.admin_reply) badges.push('<span class="badge badge--pending">답변완료</span>');
+      if (!badges.length) badges.push('<span class="badge" style="background:var(--bg2);color:var(--text-md);">일반</span>');
+      const date = r.created_at ? r.created_at.slice(0, 10) : '';
+      const content = r.content.length > 30 ? r.content.slice(0, 30) + '…' : r.content;
+      return `<tr>
+        <td>${r.id}</td>
+        <td>${r.product_name || r.product_id}</td>
+        <td>${r.username}</td>
+        <td style="color:#E8A630;">${stars}</td>
+        <td title="${r.content.replace(/"/g,'&quot;')}">${content}</td>
+        <td>${imgs}</td>
+        <td>${badges.join(' ')}</td>
+        <td>${date}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn--outline" style="font-size:10px;padding:4px 8px;margin:2px;" onclick="toggleBest(${r.id},${r.is_best?0:1})">${r.is_best?'베스트 해제':'베스트'}</button>
+          <button class="btn btn--outline" style="font-size:10px;padding:4px 8px;margin:2px;" onclick="toggleHidden(${r.id},${r.is_hidden?0:1})">${r.is_hidden?'숨김 해제':'숨기기'}</button>
+          <button class="btn btn--outline" style="font-size:10px;padding:4px 8px;margin:2px;" onclick="openReplyModal(${r.id},'${(r.admin_reply||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">답변</button>
+          <button class="btn" style="font-size:10px;padding:4px 8px;margin:2px;color:#A32D2D;border:0.5px solid #A32D2D;background:transparent;border-radius:2px;cursor:pointer;" onclick="deleteReview(${r.id})">삭제</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function toggleBest(id, val) {
+    fetch('/api/reviews/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_best: val })
+    }).then(() => loadAdminReviews());
+  }
+
+  function toggleHidden(id, val) {
+    fetch('/api/reviews/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: val })
+    }).then(() => loadAdminReviews());
+  }
+
+  function openReplyModal(id, existing) {
+    document.getElementById('reply-review-id').value = id;
+    document.getElementById('reply-content').value = existing || '';
+    document.getElementById('reply-modal').classList.add('open');
+  }
+
+  function submitReply() {
+    const id = document.getElementById('reply-review-id').value;
+    const content = document.getElementById('reply-content').value.trim();
+    fetch('/api/reviews/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_reply: content })
+    }).then(() => {
+      document.getElementById('reply-modal').classList.remove('open');
+      loadAdminReviews();
+    });
+  }
+
+  function deleteReview(id) {
+    if (!confirm('이 후기를 삭제하시겠습니까? 복구할 수 없습니다.')) return;
+    fetch('/api/reviews/' + id, { method: 'DELETE' })
+      .then(() => loadAdminReviews())
+      .catch(() => alert('삭제 실패'));
   }
 
   // 초기 렌더: 서버에서 상품 로드 후 대시보드 표시

@@ -25,6 +25,66 @@
     .info-row dt { color: var(--gray); width: 80px; flex-shrink: 0; font-weight: 300; }
     .info-row dd { color: var(--text-md); font-weight: 300; }
     @media (max-width: 768px) { .detail { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* 후기 섹션 */
+    .review-section { padding: 48px 0; border-top: 0.5px solid var(--gray-lt); margin-top: 8px; }
+    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .review-header__title { font-family: var(--serif); font-size: 22px; font-weight: 400; }
+    .review-header__count { font-size: 13px; color: var(--gray); font-weight: 300; margin-top: 4px; }
+
+    .review-summary { display: flex; gap: 40px; padding: 28px; background: var(--bg2); border-radius: var(--radius); margin-bottom: 32px; align-items: center; }
+    .review-avg { text-align: center; min-width: 100px; }
+    .review-avg__score { font-size: 40px; font-weight: 500; color: var(--text); line-height: 1.2; }
+    .review-avg__stars { font-size: 18px; color: var(--beige); margin: 6px 0; }
+    .review-avg__label { font-size: 12px; color: var(--gray); font-weight: 300; }
+    .review-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .review-bar { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--gray); font-weight: 300; }
+    .review-bar__label { width: 28px; text-align: right; }
+    .review-bar__track { flex: 1; height: 8px; background: var(--gray-lt); border-radius: 4px; overflow: hidden; opacity: 0.4; }
+    .review-bar__fill { height: 100%; background: var(--beige); border-radius: 4px; transition: width 0.3s; }
+    .review-bar__count { width: 28px; font-size: 11px; }
+
+    .review-item { padding: 24px 0; border-bottom: 0.5px solid var(--gray-lt); }
+    .review-item__header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .review-item__stars { font-size: 14px; color: var(--beige); }
+    .review-item__user { font-size: 13px; color: var(--text-md); font-weight: 400; }
+    .review-item__date { font-size: 12px; color: var(--gray); font-weight: 300; }
+    .review-item__badge { font-size: 10px; background: var(--green); color: #fff; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; }
+    .review-item__content { font-size: 14px; color: var(--text-md); line-height: 1.9; font-weight: 300; margin-bottom: 12px; }
+    .review-item__images { display: flex; gap: 8px; margin-bottom: 12px; }
+    .review-item__images img { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius); cursor: pointer; border: 0.5px solid var(--gray-lt); }
+    .review-reply { background: var(--bg2); padding: 16px 20px; border-radius: var(--radius); margin-top: 12px; }
+    .review-reply__label { font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 6px; }
+    .review-reply__text { font-size: 13px; color: var(--text-md); line-height: 1.8; font-weight: 300; }
+
+    .review-empty { text-align: center; padding: 48px 0; color: var(--gray); font-size: 14px; font-weight: 300; }
+    .review-more { text-align: center; padding: 20px 0; }
+    .review-login-msg { text-align: center; padding: 16px; font-size: 13px; color: var(--gray); font-weight: 300; }
+
+    /* 후기 작성 모달 */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); border-radius: 8px; padding: 32px; width: 500px; max-width: 92vw; max-height: 85vh; overflow-y: auto; }
+    .modal__title { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 24px; }
+    .modal__field { margin-bottom: 20px; }
+    .modal__label { font-size: 13px; color: var(--text-md); font-weight: 400; margin-bottom: 8px; display: block; }
+    .modal__footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 0.5px solid var(--gray-lt); }
+
+    .star-selector { display: flex; gap: 4px; }
+    .star-selector span { font-size: 28px; cursor: pointer; color: var(--gray-lt); transition: color 0.15s; }
+    .star-selector span.active { color: var(--beige); }
+    .star-selector span:hover, .star-selector span:hover ~ span { color: var(--beige); }
+
+    .review-textarea { width: 100%; min-height: 120px; border: 0.5px solid var(--gray-lt); border-radius: var(--radius); padding: 12px; font-family: var(--sans); font-size: 14px; resize: vertical; background: transparent; color: var(--text); line-height: 1.7; }
+    .review-textarea:focus { outline: none; border-color: var(--green); }
+    .char-count { text-align: right; font-size: 11px; color: var(--gray); margin-top: 4px; }
+
+    .img-upload-zone { display: flex; gap: 8px; flex-wrap: wrap; }
+    .img-upload-btn { width: 80px; height: 80px; border: 1px dashed var(--gray-lt); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; color: var(--gray-lt); transition: border-color 0.2s; }
+    .img-upload-btn:hover { border-color: var(--green); color: var(--green); }
+    .img-preview { width: 80px; height: 80px; border-radius: var(--radius); object-fit: cover; position: relative; }
+    .img-preview-wrap { position: relative; }
+    .img-preview-wrap .img-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: var(--dark); color: #fff; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body>
@@ -72,6 +132,68 @@
         </div>
 
         <dl class="detail__info" id="detail-info"></dl>
+      </div>
+    </div>
+
+    <!-- 후기 섹션 -->
+    <div class="review-section" id="review-section">
+      <div class="review-header">
+        <div>
+          <div class="review-header__title">구매 후기</div>
+          <div class="review-header__count" id="review-count-label"></div>
+        </div>
+        <div id="review-write-area"></div>
+      </div>
+
+      <div class="review-summary" id="review-summary" style="display:none;">
+        <div class="review-avg">
+          <div class="review-avg__score" id="review-avg-score">0</div>
+          <div class="review-avg__stars" id="review-avg-stars"></div>
+          <div class="review-avg__label">평균 별점</div>
+        </div>
+        <div class="review-bars" id="review-bars"></div>
+      </div>
+
+      <div id="review-list"></div>
+      <div class="review-more" id="review-more" style="display:none;">
+        <button class="btn btn--outline" onclick="loadMoreReviews()">더보기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 후기 작성 모달 -->
+  <div class="modal-overlay" id="review-modal">
+    <div class="modal">
+      <div class="modal__title">후기 작성</div>
+
+      <div class="modal__field">
+        <label class="modal__label">별점</label>
+        <div class="star-selector" id="star-selector">
+          <span data-val="1" onclick="selectStar(1)">&#9733;</span>
+          <span data-val="2" onclick="selectStar(2)">&#9733;</span>
+          <span data-val="3" onclick="selectStar(3)">&#9733;</span>
+          <span data-val="4" onclick="selectStar(4)">&#9733;</span>
+          <span data-val="5" onclick="selectStar(5)">&#9733;</span>
+        </div>
+      </div>
+
+      <div class="modal__field">
+        <label class="modal__label">후기 내용 (최소 10자)</label>
+        <textarea class="review-textarea" id="review-content" maxlength="500" placeholder="상품에 대한 솔직한 후기를 남겨주세요" oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="char-count">0</span>/500</div>
+      </div>
+
+      <div class="modal__field">
+        <label class="modal__label">사진 첨부 (최대 3장)</label>
+        <div class="img-upload-zone" id="img-upload-zone">
+          <div class="img-upload-btn" onclick="document.getElementById('review-img-input').click()">+</div>
+        </div>
+        <input type="file" id="review-img-input" accept="image/*" multiple style="display:none" onchange="handleReviewImages(this)">
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--outline" onclick="closeReviewModal()">취소</button>
+        <button class="btn btn--primary" onclick="submitReview()">등록하기</button>
       </div>
     </div>
   </div>
@@ -137,6 +259,232 @@
       addToCart();
       location.href = 'cart.html';
     }
+
+    // ── 후기 시스템 ──
+    let allReviews = [];
+    let reviewPage = 0;
+    const REVIEWS_PER_PAGE = 5;
+    let selectedRating = 5;
+    let reviewImages = [];
+    let userOrderId = null;
+
+    function starStr(rating, max = 5) {
+      return '&#9733;'.repeat(rating) + '&#9734;'.repeat(max - rating);
+    }
+
+    function maskName(name) {
+      if (!name) return '***';
+      if (name.length <= 2) return name[0] + '*';
+      return name.slice(0, 2) + '*'.repeat(name.length - 2);
+    }
+
+    function loadReviews() {
+      fetch('/api/reviews?product_id=' + id)
+        .then(r => r.json())
+        .then(data => {
+          allReviews = data.reviews || [];
+          renderSummary(data.summary);
+          reviewPage = 0;
+          renderReviews();
+          checkWritePermission();
+        })
+        .catch(() => {
+          document.getElementById('review-list').innerHTML = '<div class="review-empty">후기를 불러올 수 없습니다</div>';
+        });
+    }
+
+    function renderSummary(s) {
+      document.getElementById('review-count-label').textContent = `총 ${s.count}개`;
+      if (!s.count) {
+        document.getElementById('review-summary').style.display = 'none';
+        return;
+      }
+      document.getElementById('review-summary').style.display = 'flex';
+      document.getElementById('review-avg-score').textContent = s.average;
+      document.getElementById('review-avg-stars').innerHTML = starStr(Math.round(s.average));
+
+      const maxCount = Math.max(...Object.values(s.distribution), 1);
+      document.getElementById('review-bars').innerHTML = [5,4,3,2,1].map(n => {
+        const cnt = s.distribution[n] || 0;
+        const pct = (cnt / maxCount * 100).toFixed(0);
+        return `<div class="review-bar">
+          <span class="review-bar__label">${n}점</span>
+          <div class="review-bar__track"><div class="review-bar__fill" style="width:${pct}%"></div></div>
+          <span class="review-bar__count">${cnt}명</span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderReviews() {
+      const end = (reviewPage + 1) * REVIEWS_PER_PAGE;
+      const visible = allReviews.slice(0, end);
+
+      if (!visible.length) {
+        document.getElementById('review-list').innerHTML = '<div class="review-empty">아직 후기가 없습니다. 첫 번째 후기를 남겨보세요!</div>';
+        document.getElementById('review-more').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('review-list').innerHTML = visible.map(r => {
+        const imagesHtml = r.images.length
+          ? `<div class="review-item__images">${r.images.map(u => `<img src="${u}" alt="후기 사진" onclick="window.open('${u}','_blank')">`).join('')}</div>`
+          : '';
+        const bestBadge = r.is_best ? '<span class="review-item__badge">BEST</span>' : '';
+        const replyHtml = r.admin_reply
+          ? `<div class="review-reply"><div class="review-reply__label">사장님 답글</div><div class="review-reply__text">${r.admin_reply}</div></div>`
+          : '';
+        const date = r.created_at ? r.created_at.split('T')[0] || r.created_at.split(' ')[0] : '';
+        return `<div class="review-item">
+          <div class="review-item__header">
+            <span class="review-item__stars">${starStr(r.rating)}</span>
+            ${bestBadge}
+            <span class="review-item__user">${maskName(r.username)}</span>
+            <span class="review-item__date">${date}</span>
+          </div>
+          <div class="review-item__content">${r.content}</div>
+          ${imagesHtml}
+          ${replyHtml}
+        </div>`;
+      }).join('');
+
+      document.getElementById('review-more').style.display = end < allReviews.length ? 'block' : 'none';
+    }
+
+    function loadMoreReviews() { reviewPage++; renderReviews(); }
+
+    function checkWritePermission() {
+      const user = JSON.parse(localStorage.getItem('hb_user') || 'null');
+      const token = localStorage.getItem('hb_token');
+      const area = document.getElementById('review-write-area');
+
+      if (!user || !token) {
+        area.innerHTML = '<div class="review-login-msg">로그인 후 후기를 작성할 수 있습니다</div>';
+        return;
+      }
+
+      // 이미 작성했는지 확인
+      const already = allReviews.some(r => r.user_id === user.id);
+      if (already) {
+        area.innerHTML = '<div class="review-login-msg">이미 후기를 작성하셨습니다</div>';
+        return;
+      }
+
+      // 구매 이력 확인
+      fetch('/api/orders', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(orders => {
+          const myOrder = orders.find(o => {
+            const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || '[]');
+            return items.some(item => item.id === id);
+          });
+          if (myOrder) {
+            userOrderId = myOrder.id;
+            area.innerHTML = '<button class="btn btn--primary" onclick="openReviewModal()">후기 작성</button>';
+          } else {
+            area.innerHTML = '<div class="review-login-msg">구매 후 후기를 작성할 수 있습니다</div>';
+          }
+        })
+        .catch(() => {
+          area.innerHTML = '<div class="review-login-msg">구매 후 후기를 작성할 수 있습니다</div>';
+        });
+    }
+
+    // 별점 선택
+    function selectStar(val) {
+      selectedRating = val;
+      document.querySelectorAll('#star-selector span').forEach(s => {
+        s.classList.toggle('active', +s.dataset.val <= val);
+      });
+    }
+    selectStar(5);
+
+    function updateCharCount() {
+      document.getElementById('char-count').textContent = document.getElementById('review-content').value.length;
+    }
+
+    // 이미지 첨부
+    function handleReviewImages(input) {
+      const files = Array.from(input.files);
+      const remaining = 3 - reviewImages.length;
+      files.slice(0, remaining).forEach(file => {
+        if (file.size > 10 * 1024 * 1024) { alert('10MB 이하 파일만 가능합니다'); return; }
+        reviewImages.push(file);
+      });
+      input.value = '';
+      renderImagePreviews();
+    }
+
+    function removeReviewImage(idx) {
+      reviewImages.splice(idx, 1);
+      renderImagePreviews();
+    }
+
+    function renderImagePreviews() {
+      const zone = document.getElementById('img-upload-zone');
+      let html = reviewImages.map((file, i) => {
+        const url = URL.createObjectURL(file);
+        return `<div class="img-preview-wrap">
+          <img class="img-preview" src="${url}" alt="미리보기">
+          <button class="img-remove" onclick="removeReviewImage(${i})">×</button>
+        </div>`;
+      }).join('');
+      if (reviewImages.length < 3) {
+        html += '<div class="img-upload-btn" onclick="document.getElementById(\'review-img-input\').click()">+</div>';
+      }
+      zone.innerHTML = html;
+    }
+
+    function openReviewModal() {
+      selectedRating = 5;
+      selectStar(5);
+      document.getElementById('review-content').value = '';
+      document.getElementById('char-count').textContent = '0';
+      reviewImages = [];
+      renderImagePreviews();
+      document.getElementById('review-modal').classList.add('open');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-modal').classList.remove('open');
+    }
+
+    function submitReview() {
+      const content = document.getElementById('review-content').value.trim();
+      if (content.length < 10) { alert('후기는 10자 이상 작성해주세요'); return; }
+
+      const token = localStorage.getItem('hb_token');
+      fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ order_id: userOrderId, product_id: id, rating: selectedRating, content })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { alert(data.error); return; }
+          // 이미지 업로드
+          if (reviewImages.length && data.id) {
+            const form = new FormData();
+            reviewImages.forEach(f => form.append('images', f));
+            return fetch('/api/reviews/' + data.id + '/images', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token },
+              body: form
+            }).then(() => data);
+          }
+          return data;
+        })
+        .then(data => {
+          if (data && data.success) {
+            alert('후기가 등록되었습니다!');
+            closeReviewModal();
+            loadReviews();
+          }
+        })
+        .catch(() => alert('후기 등록에 실패했습니다'));
+    }
+
+    // 후기 로드
+    loadReviews();
   </script>
 </body>
 </html>

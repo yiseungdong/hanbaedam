@@ -16,6 +16,8 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 // uploads 폴더 자동 생성
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+const reviewImgDir = path.join(uploadsDir, 'reviews');
+if (!fs.existsSync(reviewImgDir)) fs.mkdirSync(reviewImgDir);
 
 // 미들웨어
 app.use(cors());
@@ -38,6 +40,27 @@ const upload = multer({
     cb(null, ext && mime);
   }
 });
+
+// 리뷰 이미지 업로드용 multer
+const reviewStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, reviewImgDir),
+  filename: (req, file, cb) => cb(null, 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) + path.extname(file.originalname))
+});
+const reviewUpload = multer({
+  storage: reviewStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpg|jpeg|png|webp/;
+    cb(null, allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype.split('/')[1]));
+  }
+});
+
+// JWT 토큰 검증 헬퍼
+function verifyToken(req) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return null;
+  try { return jwt.verify(auth.slice(7), JWT_SECRET); } catch { return null; }
+}
 
 // tags JSON 파싱 헬퍼
 function parseProduct(row) {
@@ -244,6 +267,118 @@ app.post('/api/auth/login', async (req, res) => {
   if (!valid) return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다' });
   const token = jwt.sign({ id: user.id, username: user.username, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user.id, username: user.username, name: user.name } });
+});
+
+// ── 후기 API ──
+
+function parseReview(row) {
+  return { ...row, images: JSON.parse(row.images || '[]') };
+}
+
+app.get('/api/reviews', (req, res) => {
+  const db = getDB();
+  const productId = req.query.product_id;
+  const limit = Number(req.query.limit) || 50;
+  let sql = 'SELECT * FROM reviews WHERE is_hidden = 0';
+  if (productId) sql += ` AND product_id = ${Number(productId)}`;
+  sql += ` ORDER BY created_at DESC LIMIT ${limit}`;
+  const result = db.exec(sql);
+  if (!result.length) return res.json({ reviews: [], summary: { count: 0, average: 0, distribution: {5:0,4:0,3:0,2:0,1:0} } });
+  const reviews = rowToObj(result[0].columns, result[0].values).map(parseReview);
+  const count = reviews.length;
+  const average = count ? +(reviews.reduce((s, r) => s + r.rating, 0) / count).toFixed(1) : 0;
+  const distribution = {5:0,4:0,3:0,2:0,1:0};
+  reviews.forEach(r => { if (distribution[r.rating] !== undefined) distribution[r.rating]++; });
+  res.json({ reviews, summary: { count, average, distribution } });
+});
+
+app.get('/api/admin/reviews', (req, res) => {
+  const db = getDB();
+  const result = db.exec('SELECT r.*, p.name as product_name FROM reviews r LEFT JOIN products p ON r.product_id = p.id ORDER BY r.created_at DESC');
+  if (!result.length) return res.json([]);
+  res.json(rowToObj(result[0].columns, result[0].values).map(parseReview));
+});
+
+app.get('/api/reviews/best', (req, res) => {
+  const db = getDB();
+  let result = db.exec('SELECT * FROM reviews WHERE is_best = 1 AND is_hidden = 0 ORDER BY created_at DESC LIMIT 3');
+  if (!result.length || !result[0].values.length) {
+    result = db.exec('SELECT * FROM reviews WHERE is_hidden = 0 ORDER BY rating DESC, created_at DESC LIMIT 3');
+  }
+  if (!result.length) return res.json([]);
+  res.json(rowToObj(result[0].columns, result[0].values).map(parseReview));
+});
+
+app.post('/api/reviews', (req, res) => {
+  const user = verifyToken(req);
+  if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
+  const db = getDB();
+  const { order_id, product_id, rating, content } = req.body;
+  if (!order_id || !product_id || !rating || !content) return res.status(400).json({ error: '필수 항목을 모두 입력해주세요' });
+  if (rating < 1 || rating > 5) return res.status(400).json({ error: '별점은 1~5점이어야 합니다' });
+  if (content.length < 10) return res.status(400).json({ error: '후기는 10자 이상 작성해주세요' });
+
+  // 주문 확인
+  const orderCheck = db.exec(`SELECT id FROM orders WHERE id = ${Number(order_id)}`);
+  if (!orderCheck.length || !orderCheck[0].values.length) return res.status(400).json({ error: '해당 주문을 찾을 수 없습니다' });
+
+  // 중복 확인
+  const dupCheck = db.exec(`SELECT id FROM reviews WHERE product_id = ${Number(product_id)} AND user_id = ${Number(user.id)}`);
+  if (dupCheck.length && dupCheck[0].values.length) return res.status(409).json({ error: '이미 이 상품에 후기를 작성하셨습니다' });
+
+  const stmt = db.prepare('INSERT INTO reviews (order_id, product_id, user_id, username, rating, content) VALUES (?, ?, ?, ?, ?, ?)');
+  stmt.run([Number(order_id), Number(product_id), user.id, user.username, Number(rating), content]);
+  stmt.free();
+  saveDB();
+  const newId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
+  res.status(201).json({ success: true, id: newId });
+});
+
+app.post('/api/reviews/:id/images', reviewUpload.array('images', 3), (req, res) => {
+  const user = verifyToken(req);
+  if (!user) return res.status(401).json({ error: '로그인이 필요합니다' });
+  if (!req.files || !req.files.length) return res.status(400).json({ error: '파일이 없습니다' });
+  const db = getDB();
+  const reviewId = Number(req.params.id);
+  const result = db.exec(`SELECT images FROM reviews WHERE id = ${reviewId} AND user_id = ${user.id}`);
+  if (!result.length || !result[0].values.length) return res.status(404).json({ error: '후기를 찾을 수 없습니다' });
+  const existing = JSON.parse(result[0].values[0][0] || '[]');
+  const newUrls = req.files.map(f => '/uploads/reviews/' + f.filename);
+  const all = [...existing, ...newUrls].slice(0, 3);
+  db.run(`UPDATE reviews SET images = '${JSON.stringify(all)}' WHERE id = ${reviewId}`);
+  saveDB();
+  res.json({ images: all });
+});
+
+app.put('/api/reviews/:id', (req, res) => {
+  const db = getDB();
+  const reviewId = Number(req.params.id);
+  const { is_best, is_hidden, admin_reply } = req.body;
+  const fields = [];
+  const vals = [];
+  if (is_best !== undefined) { fields.push('is_best=?'); vals.push(is_best ? 1 : 0); }
+  if (is_hidden !== undefined) { fields.push('is_hidden=?'); vals.push(is_hidden ? 1 : 0); }
+  if (admin_reply !== undefined) { fields.push('admin_reply=?'); vals.push(admin_reply); }
+  if (!fields.length) return res.status(400).json({ error: '수정할 항목이 없습니다' });
+  db.run(`UPDATE reviews SET ${fields.join(',')} WHERE id = ${reviewId}`, vals);
+  saveDB();
+  res.json({ message: '후기 수정 완료' });
+});
+
+app.delete('/api/reviews/:id', (req, res) => {
+  const db = getDB();
+  const reviewId = Number(req.params.id);
+  const result = db.exec(`SELECT images FROM reviews WHERE id = ${reviewId}`);
+  if (result.length && result[0].values.length) {
+    const images = JSON.parse(result[0].values[0][0] || '[]');
+    images.forEach(url => {
+      const filepath = path.join(__dirname, url);
+      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+    });
+  }
+  db.run(`DELETE FROM reviews WHERE id = ${reviewId}`);
+  saveDB();
+  res.json({ message: '후기 삭제 완료' });
 });
 
 // ── 어드민 API ──

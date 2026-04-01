@@ -83,6 +83,23 @@ async function initDB() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      username TEXT NOT NULL,
+      rating INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      images TEXT DEFAULT '[]',
+      is_best INTEGER DEFAULT 0,
+      is_hidden INTEGER DEFAULT 0,
+      admin_reply TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // 초기 상품 데이터 삽입 (테이블이 비어있을 때만)
   const count = db.exec("SELECT COUNT(*) as cnt FROM products");
   if (count[0].values[0][0] === 0) {
