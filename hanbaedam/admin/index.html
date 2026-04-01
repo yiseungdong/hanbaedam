@@ -729,6 +729,21 @@
 
   function handleFile(file) {
     if (file.size > 10 * 1024 * 1024) { alert('10MB 이하 파일만 업로드 가능합니다'); return; }
+
+    // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
+    document.getElementById('photo-input').value = '';
+
+    // 기존 캔버스 완전 초기화
+    ['canvas-original', 'canvas-preview'].forEach(id => {
+      const c = document.getElementById(id);
+      const ctx = c.getContext('2d');
+      ctx.filter = 'none';
+      ctx.clearRect(0, 0, c.width, c.height);
+    });
+
+    // 기존 이미지 참조 해제
+    originalImage = null;
+
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
@@ -747,6 +762,7 @@
   function drawOriginal() {
     const c = document.getElementById('canvas-original');
     const ctx = c.getContext('2d');
+    ctx.filter = 'none';
     ctx.clearRect(0, 0, c.width, c.height);
     const scale = Math.min(c.width / originalImage.width, c.height / originalImage.height);
     const w = originalImage.width * scale, h = originalImage.height * scale;
