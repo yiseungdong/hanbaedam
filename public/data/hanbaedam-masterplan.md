@@ -6,7 +6,7 @@
 
 ## 로드맵
 
-### Phase 1 — 프론트엔드 완성 [진행중 / 70%]
+### Phase 1 — 프론트엔드 완성 [페이지 완료 / 실제 데이터 입력 남음]
 - [x] index.html 메인 홈페이지 (선물시즌 자동감지 완성)
 - [x] products.html 상품 목록
 - [x] product-detail.html 상품 상세
@@ -14,7 +14,7 @@
 - [x] cart.html 장바구니
 - [x] admin/index.html 관리자 어드민 (선물시즌 관리 포함)
 - [x] gift.html 선물하기 페이지 ✅
-- [ ] producers.html 생산자 소개 페이지
+- [x] producers.html 생산자 소개 페이지 ✅
 - [ ] 실제 상품 데이터 입력 (사진 포함)
 
 ### Phase 2 — 백엔드 + 결제 [미시작]
@@ -63,3 +63,5 @@
 - 2025-04-01: 마스터플랜 최초 생성. Phase 1 70% 완료.
 - 2026-04-01: gift.html 선물하기 페이지 완성. Phase 1 진행률 약 80%.
 - 2026-04-01: index.html 선물시즌 자동감지 기능 완성. admin 선물시즌 관리 카드 추가. B2C/B2B 구조 명시.
+- 2026-04-01: producers.html 생산자 소개 페이지 완성. PRODUCERS 데이터 main.js 추가.
+- 2026-04-01: producers.html 토글 아코디언 기능 완성 — Phase 1 프론트엔드 페이지 전체 완료.

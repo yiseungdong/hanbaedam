@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>생산자 소개 — 한백담</title>
+  <meta name="description" content="한백담의 생산자를 소개합니다. 강원도 홍천에서 정직하게 농사짓는 농부들의 이야기.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── PRODUCER HERO ── */
+    .producer-hero {
+      background: var(--dark); position: relative; overflow: hidden;
+      min-height: 400px; display: flex; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .producer-hero__mountain { position: absolute; bottom: 0; width: 100%; }
+    .producer-hero__content { position: relative; z-index: 1; padding: 80px 40px; }
+    .producer-hero__eyebrow { font-size: 11px; color: var(--green-mid); letter-spacing: 0.24em; margin-bottom: 20px; }
+    .producer-hero__title { font-family: var(--serif); font-size: 38px; color: var(--bg); line-height: 1.55; margin-bottom: 18px; }
+    .producer-hero__sub { font-size: 14px; color: rgba(246,242,234,0.5); font-weight: 300; letter-spacing: 0.06em; }
+
+    /* ── PRODUCER LIST ── */
+    .producer-list { padding: 72px 0; }
+    .producer-item {
+      background: var(--bg); border: 0.5px solid var(--gray-lt); border-radius: var(--radius);
+      padding: 28px 32px; margin-bottom: 20px;
+    }
+    .producer-item__top {
+      display: flex; align-items: center; gap: 24px;
+    }
+    .producer-item__avatar {
+      width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 22px; color: var(--bg);
+    }
+    .producer-item__info { flex: 1; }
+    .producer-item__name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .producer-item__meta { font-size: 12px; color: var(--gray); letter-spacing: 0.04em; margin-bottom: 8px; }
+    .producer-item__method {
+      display: inline-block; font-size: 10px; padding: 3px 10px; border-radius: 2px;
+      background: #EAF3DE; color: #27500A; letter-spacing: 0.06em; margin-bottom: 10px;
+    }
+    .producer-item__quote {
+      font-size: 13px; color: var(--text-md); font-family: var(--serif);
+      line-height: 1.8; font-weight: 300;
+    }
+    .producer-item__toggle {
+      flex-shrink: 0; font-size: 12px; color: var(--green); background: transparent;
+      border: 0.5px solid var(--green); padding: 8px 20px; border-radius: 2px;
+      cursor: pointer; letter-spacing: 0.06em; transition: all .2s; font-family: var(--sans);
+    }
+    .producer-item__toggle:hover { background: var(--green); color: var(--bg); }
+
+    /* ── PRODUCER DETAIL (토글) ── */
+    .producer-item__detail {
+      display: none; margin-top: 20px; padding-top: 20px;
+      border-top: 0.5px solid var(--gray-lt);
+    }
+    .producer-item__detail.open { display: block; }
+    .producer-item__story {
+      font-size: 14px; color: var(--text-md); line-height: 2.0;
+      font-weight: 300; margin-bottom: 20px;
+    }
+    .producer-item__products-title {
+      font-size: 12px; color: var(--gray); letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+    .producer-item__products {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .producer-item__product-card {
+      width: 160px; cursor: pointer; transition: transform .2s;
+    }
+    .producer-item__product-card:hover { transform: scale(1.02); }
+    .producer-item__product-img {
+      width: 100%; aspect-ratio: 4/5; border-radius: var(--radius); margin-bottom: 8px;
+    }
+    .producer-item__product-name { font-size: 13px; font-weight: 400; margin-bottom: 2px; }
+    .producer-item__product-price { font-size: 12px; color: var(--gray); font-weight: 300; }
+
+    /* ── VALUES ── */
+    .values { background: var(--bg2); padding: 72px 0; }
+    .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; padding: 0 40px; }
+    .value-card { text-align: center; padding: 32px 20px; }
+    .value-card__num { font-family: var(--serif); font-size: 32px; color: var(--green); opacity: 0.4; margin-bottom: 12px; }
+    .value-card__title { font-size: 16px; font-weight: 500; margin-bottom: 10px; }
+    .value-card__desc { font-size: 13px; color: var(--gray); line-height: 1.8; font-weight: 300; }
+
+    /* ── JOIN FORM ── */
+    .join { background: var(--dark); padding: 80px 0; }
+    .join__content { max-width: 560px; margin: 0 auto; padding: 0 40px; }
+    .join__eyebrow { font-size: 11px; color: var(--green-mid); letter-spacing: 0.22em; margin-bottom: 16px; text-align: center; }
+    .join__title { font-family: var(--serif); font-size: 28px; color: var(--bg); text-align: center; line-height: 1.55; margin-bottom: 10px; }
+    .join__sub { font-size: 13px; color: rgba(246,242,234,0.5); text-align: center; font-weight: 300; margin-bottom: 36px; }
+    .join__row { margin-bottom: 16px; }
+    .join__row--half { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .join__label { display: block; font-size: 12px; color: rgba(246,242,234,0.5); letter-spacing: 0.06em; margin-bottom: 6px; }
+    .join__input,
+    .join__textarea {
+      width: 100%; font-family: var(--sans); font-size: 13px; font-weight: 300;
+      padding: 11px 14px; border: 0.5px solid rgba(246,242,234,0.2); border-radius: 2px;
+      background: transparent; color: var(--bg); transition: border-color .2s;
+    }
+    .join__input::placeholder,
+    .join__textarea::placeholder { color: rgba(246,242,234,0.25); }
+    .join__input:focus,
+    .join__textarea:focus { outline: none; border-color: var(--green-mid); }
+    .join__textarea { resize: vertical; min-height: 100px; }
+    .join__submit { margin-top: 24px; width: 100%; text-align: center; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .producer-hero { min-height: 320px; }
+      .producer-hero__title { font-size: 28px; }
+      .producer-hero__content { padding: 60px 24px; }
+      .producer-item__top { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .producer-item__toggle { align-self: flex-start; }
+      .producer-item__products { flex-direction: column; }
+      .producer-item__product-card { width: 100%; }
+      .values-grid { grid-template-columns: 1fr; }
+      .join__row--half { grid-template-columns: 1fr; }
+      .join__title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="index.html" class="nav__logo">한백담<span>HANBAEDAM</span></a>
+    <ul class="nav__links">
+      <li><a href="products.html">상품</a></li>
+      <li><a href="about.html">브랜드 스토리</a></li>
+      <li><a href="producers.html" style="color:var(--green);">생산자</a></li>
+      <li><a href="gift.html">선물하기</a></li>
+    </ul>
+    <div class="nav__right">
+      <a href="cart.html" class="nav__cart" id="cart-count">장바구니 0</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="producer-hero">
+    <svg class="producer-hero__mountain" viewBox="0 0 1200 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <circle cx="180" cy="70" r="1.5" fill="rgba(246,242,234,0.2)"/>
+      <circle cx="450" cy="45" r="1" fill="rgba(246,242,234,0.15)"/>
+      <circle cx="750" cy="80" r="1.5" fill="rgba(246,242,234,0.18)"/>
+      <circle cx="1020" cy="55" r="1" fill="rgba(246,242,234,0.12)"/>
+      <polygon points="0,320 100,140 200,220 340,80 480,200 600,100 740,210 880,120 1020,230 1200,320" fill="var(--green)" opacity="0.12"/>
+      <polygon points="0,320 60,200 160,270 300,140 420,240 560,160 700,250 840,170 980,270 1200,320" fill="var(--green)" opacity="0.08"/>
+    </svg>
+    <div class="producer-hero__content">
+      <div class="producer-hero__eyebrow fade-in">PRODUCERS · 생산자</div>
+      <h1 class="producer-hero__title fade-in-2">얼굴이 보이는<br>먹거리</h1>
+      <p class="producer-hero__sub fade-in-3">한백담의 모든 상품엔 이름이 있습니다</p>
+    </div>
+  </section>
+
+  <!-- PRODUCER LIST -->
+  <section class="producer-list">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-header__title">한백담 생산자</div>
+          <div class="section-header__sub">홍천의 정직한 농부들</div>
+        </div>
+      </div>
+      <div id="producer-list-container"></div>
+    </div>
+  </section>
+
+  <!-- VALUES -->
+  <section class="values">
+    <div style="text-align:center; margin-bottom:40px; padding: 0 40px;">
+      <h2 class="serif" style="font-size:22px; font-weight:400; color:var(--text);">한백담이 생산자를 선택하는 기준</h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-card__num">一</div>
+        <div class="value-card__title">무농약 원칙</div>
+        <div class="value-card__desc">화학비료와 제초제를 사용하지 않거나 최소화합니다</div>
+      </div>
+      <div class="value-card">
+        <div class="value-card__num">二</div>
+        <div class="value-card__title">경력 5년 이상</div>
+        <div class="value-card__desc">충분한 경험과 노하우를 가진 농부와 함께합니다</div>
+      </div>
+      <div class="value-card">
+        <div class="value-card__num">三</div>
+        <div class="value-card__title">직접 방문 확인</div>
+        <div class="value-card__desc">모든 생산자의 농장을 직접 방문해 확인합니다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOIN FORM -->
+  <section class="join">
+    <div class="join__content">
+      <div class="join__eyebrow fade-in">JOIN US · 함께하기</div>
+      <h2 class="join__title fade-in-2">홍천에서 농사짓고 계신가요?</h2>
+      <p class="join__sub fade-in-3">한백담과 함께 더 많은 분들께 전달해보세요</p>
+      <form id="producer-form">
+        <div class="join__row join__row--half">
+          <div>
+            <label class="join__label">이름</label>
+            <input class="join__input" type="text" name="name" required>
+          </div>
+          <div>
+            <label class="join__label">연락처</label>
+            <input class="join__input" type="tel" name="phone" required>
+          </div>
+        </div>
+        <div class="join__row join__row--half">
+          <div>
+            <label class="join__label">재배 품목</label>
+            <input class="join__input" type="text" name="crop" placeholder="예: 고구마, 잣, 산나물" required>
+          </div>
+          <div>
+            <label class="join__label">재배 방식</label>
+            <input class="join__input" type="text" name="method" placeholder="무농약/유기농/일반 등">
+          </div>
+        </div>
+        <div class="join__row">
+          <label class="join__label">한마디</label>
+          <textarea class="join__textarea" name="message" placeholder="자유롭게 소개해주세요."></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary join__submit">입점 문의하기</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__logo">한백담<span>HANBAEDAM · 韓白潭</span></div>
+      <div class="footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">공지사항</a>
+        <a href="#">고객센터</a>
+      </div>
+    </div>
+    <div class="footer__copy">
+      상호: 한백담 | 대표자: ○○○ | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제0000-강원홍천-0000호<br>
+      주소: 강원특별자치도 홍천군 ○○면 ○○로 000 | 고객센터: 000-0000-0000 | 이메일: hello@hanbaedam.com<br>
+      © 2025 HANBAEDAM. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    /* ── 생산자 카드 렌더 ── */
+    document.getElementById('producer-list-container').innerHTML = PRODUCERS.map(pr => {
+      const prProducts = pr.products.map(pid => PRODUCTS.find(p => p.id === pid)).filter(Boolean);
+      return `
+        <div class="producer-item">
+          <div class="producer-item__top">
+            <div class="producer-item__avatar" style="background:${pr.color};">${pr.avatar}</div>
+            <div class="producer-item__info">
+              <div class="producer-item__name">${pr.name} 농부</div>
+              <div class="producer-item__meta">${pr.location} · ${pr.career}</div>
+              <span class="producer-item__method">${pr.method}</span>
+              <div class="producer-item__quote">"${pr.quote}"</div>
+            </div>
+            <button class="producer-item__toggle" onclick="toggleProducer(this)">자세히 보기</button>
+          </div>
+          <div class="producer-item__detail">
+            <div class="producer-item__story">${pr.story}</div>
+            <div class="producer-item__products-title">담당 상품</div>
+            <div class="producer-item__products">
+              ${prProducts.map(p => `
+                <div class="producer-item__product-card" onclick="location.href='product-detail.html?id=${p.id}'">
+                  <div class="producer-item__product-img" style="background:${p.color};"></div>
+                  <div class="producer-item__product-name">${p.name}</div>
+                  <div class="producer-item__product-price">${p.price.toLocaleString()}원 / ${p.unit}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    /* ── 토글: 한 번에 하나만 열림 ── */
+    function toggleProducer(btn) {
+      const item = btn.closest('.producer-item');
+      const detail = item.querySelector('.producer-item__detail');
+      const isOpen = detail.classList.contains('open');
+
+      // 모든 카드 닫기
+      document.querySelectorAll('.producer-item__detail.open').forEach(d => d.classList.remove('open'));
+      document.querySelectorAll('.producer-item__toggle').forEach(b => b.textContent = '자세히 보기');
+
+      // 클릭한 카드만 열기 (이미 열려있었으면 닫은 상태 유지)
+      if (!isOpen) {
+        detail.classList.add('open');
+        btn.textContent = '접기';
+      }
+    }
+
+    /* ── 입점 문의 폼 ── */
+    document.getElementById('producer-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(this));
+      formData.date = new Date().toISOString();
+
+      const inquiries = JSON.parse(localStorage.getItem('hb_producer_inquiries') || '[]');
+      inquiries.push(formData);
+      localStorage.setItem('hb_producer_inquiries', JSON.stringify(inquiries));
+
+      alert('문의가 접수되었습니다. 곧 연락드리겠습니다.');
+      this.reset();
+    });
+  </script>
+</body>
+</html>
