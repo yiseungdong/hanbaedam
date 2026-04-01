@@ -145,13 +145,16 @@ const Cart = {
 
 /* ── 상품 카드 렌더 ── */
 function renderProductCard(p) {
-  const imgContent = p.image
-    ? `<img src="${p.image}" alt="${p.name}" style="opacity:0;transition:opacity .3s" onload="this.style.opacity=1" onerror="this.style.display='none'">`
+  const imgTag = p.image
+    ? `<img src="${p.image}" alt="${p.name}"
+        style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;opacity:0;transition:opacity .3s"
+        onload="this.style.opacity=1"
+        onerror="this.parentElement.style.background='${p.color || '#EEEADF'}';this.style.display='none'">`
     : '';
   return `
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
-      <div class="product-card__img" style="background:${p.color || '#EEEADF'};">
-        ${imgContent}
+      <div style="width:100%;height:220px;overflow:hidden;background:${p.color || '#EEEADF'};border-radius:4px 4px 0 0;position:relative;">
+        ${imgTag}
         <div class="product-card__badge">${p.badge}</div>
       </div>
       <div class="product-card__name">${p.name}</div>
