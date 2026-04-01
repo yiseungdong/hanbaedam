@@ -66,9 +66,10 @@
   <script src="js/main.js"></script>
   <script>
     let currentFilter = 'all';
+    let allProducts = [];
 
     function renderProducts(filter) {
-      const filtered = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
+      const filtered = filter === 'all' ? allProducts : allProducts.filter(p => p.category === filter);
       document.getElementById('products-container').innerHTML = filtered.map(renderProductCard).join('');
     }
 
@@ -81,7 +82,17 @@
       });
     });
 
-    renderProducts('all');
+    // 서버 API에서 상품 목록 가져오기, 실패 시 로컬 데이터 사용
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(products => {
+        allProducts = products;
+        renderProducts(currentFilter);
+      })
+      .catch(() => {
+        allProducts = PRODUCTS;
+        renderProducts(currentFilter);
+      });
   </script>
 </body>
 </html>

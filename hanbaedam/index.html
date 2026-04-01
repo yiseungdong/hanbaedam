@@ -268,18 +268,24 @@
 
   <script src="js/main.js"></script>
   <script>
-    // 홈 상품: gift 제외, 최대 6개
-    document.getElementById('home-products').innerHTML =
-      PRODUCTS.filter(p => p.category !== 'gift').slice(0, 6).map(renderProductCard).join('');
+    function renderHome(products) {
+      document.getElementById('home-products').innerHTML =
+        products.filter(p => p.category !== 'gift').slice(0, 6).map(renderProductCard).join('');
 
-    // 선물 시즌이면 배너 + 선물세트 섹션 표시
-    if (isGiftSeason()) {
-      document.getElementById('gift-season-banner').style.display = 'flex';
-      document.getElementById('season-gift-banner').style.display = 'flex';
-      document.getElementById('gift-season-products').style.display = 'block';
-      document.getElementById('home-gift-products').innerHTML =
-        PRODUCTS.filter(p => p.category === 'gift').map(renderProductCard).join('');
+      if (isGiftSeason()) {
+        document.getElementById('gift-season-banner').style.display = 'flex';
+        document.getElementById('season-gift-banner').style.display = 'flex';
+        document.getElementById('gift-season-products').style.display = 'block';
+        document.getElementById('home-gift-products').innerHTML =
+          products.filter(p => p.category === 'gift').map(renderProductCard).join('');
+      }
     }
+
+    // 서버 API에서 상품 가져오기, 실패 시 로컬 데이터 사용
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(products => renderHome(products))
+      .catch(() => renderHome(PRODUCTS));
   </script>
 </body>
 </html>
