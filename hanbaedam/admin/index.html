@@ -114,6 +114,22 @@
     .photo-card__actions { display: flex; gap: 6px; }
     .photo-card__actions button { font-size: 11px; padding: 4px 10px; border-radius: 2px; cursor: pointer; font-family: var(--sans); }
 
+    /* 주문 관리 */
+    .order-filter-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+    .order-filter-bar input[type="text"] { flex:1; min-width:200px; padding:8px 12px; border:0.5px solid var(--gray-lt); border-radius:2px; font-size:13px; font-family:var(--sans); background:var(--bg); }
+    .order-filter-bar select, .order-filter-bar input[type="date"] { padding:8px 10px; border:0.5px solid var(--gray-lt); border-radius:2px; font-size:12px; font-family:var(--sans); background:var(--bg); }
+    .order-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .order-table th { padding:10px 12px; text-align:left; font-size:11px; color:var(--gray); letter-spacing:0.08em; font-weight:400; border-bottom:0.5px solid var(--gray-lt); background:var(--bg2); white-space:nowrap; }
+    .order-table td { padding:10px 12px; border-bottom:0.5px solid var(--gray-lt); color:var(--text-md); font-weight:300; vertical-align:middle; }
+    .order-table tr:hover td { background:var(--bg2); }
+    .status-badge { display:inline-block; padding:3px 10px; border-radius:2px; font-size:10px; font-weight:400; letter-spacing:0.06em; }
+    .status-결제대기 { background:#FAEEDA; color:#633806; }
+    .status-결제완료 { background:#D6EAF8; color:#1B4F72; }
+    .status-배송준비 { background:#F3E5F5; color:#6A1B9A; }
+    .status-배송중   { background:#EAF3DE; color:#27500A; }
+    .status-배송완료 { background:var(--bg2); color:var(--gray); }
+    .status-취소     { background:#FDEDEC; color:#A32D2D; }
+
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .channel-grid { grid-template-columns: 1fr 1fr; } .slider-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -151,13 +167,36 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-card__label">오늘 주문</div>
-          <div class="stat-card__value">0</div>
-          <div class="stat-card__sub">운영 준비 중</div>
+          <div class="stat-card__value" id="stat-today">0</div>
+          <div class="stat-card__sub">건</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-card__label">이번 달 매출</div>
+          <div class="stat-card__value" id="stat-revenue">0</div>
+          <div class="stat-card__sub">원</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">미처리 주문</div>
+          <div class="stat-card__value" id="stat-pending">0</div>
+          <div class="stat-card__sub">건</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">배송중</div>
+          <div class="stat-card__value" id="stat-shipping">0</div>
+          <div class="stat-card__sub">건</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="margin-top:-16px;">
         <div class="stat-card">
           <div class="stat-card__label">총 상품 수</div>
           <div class="stat-card__value" id="stat-products">6</div>
           <div class="stat-card__sub">등록된 상품</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">재고 부족</div>
+          <div class="stat-card__value" id="stat-low">0</div>
+          <div class="stat-card__sub">10개 미만</div>
         </div>
         <div class="stat-card">
           <div class="stat-card__label">연동 채널</div>
@@ -165,9 +204,8 @@
           <div class="stat-card__sub">네이버 스마트스토어</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card__label">재고 부족</div>
-          <div class="stat-card__value" id="stat-low">0</div>
-          <div class="stat-card__sub">10개 미만</div>
+          <div class="stat-card__label">&nbsp;</div>
+          <div class="stat-card__value">&nbsp;</div>
         </div>
       </div>
 
@@ -288,9 +326,33 @@
     <!-- 주문 관리 탭 -->
     <div id="tab-orders" style="display:none;">
       <div class="admin-header"><div class="admin-title">주문 관리</div></div>
-      <div style="background:var(--bg);border:0.5px solid var(--gray-lt);border-radius:4px;padding:60px;text-align:center;">
-        <div style="font-size:15px;color:var(--gray);font-family:var(--serif);margin-bottom:12px;">아직 접수된 주문이 없습니다</div>
-        <div style="font-size:12px;color:var(--gray);font-weight:300;">채널 연동 및 판매 시작 후 모든 채널의 주문이 여기에 통합 표시됩니다</div>
+      <div class="order-filter-bar">
+        <input type="text" id="orderSearch" placeholder="주문자명 / 연락처 / 주문번호" oninput="loadOrders()">
+        <select id="orderStatus" onchange="loadOrders()">
+          <option value="전체">전체 상태</option>
+          <option value="결제대기">결제대기</option>
+          <option value="결제완료">결제완료</option>
+          <option value="배송준비">배송준비</option>
+          <option value="배송중">배송중</option>
+          <option value="배송완료">배송완료</option>
+          <option value="취소">취소</option>
+        </select>
+        <input type="date" id="orderDateFrom" onchange="loadOrders()">
+        <span style="font-size:12px;color:var(--gray);">~</span>
+        <input type="date" id="orderDateTo" onchange="loadOrders()">
+      </div>
+      <div class="table-card" style="overflow-x:auto;">
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th>주문번호</th><th>주문일시</th><th>주문자</th><th>연락처</th>
+              <th>상품</th><th>금액</th><th>상태</th><th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="orderTableBody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">불러오는 중...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -430,6 +492,17 @@
   </div>
 </div>
 
+<!-- 주문 상세 모달 -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" style="width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div class="modal-title" style="margin-bottom:0;">주문 상세</div>
+      <button style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);" onclick="document.getElementById('order-modal').classList.remove('open')">✕</button>
+    </div>
+    <div id="orderModalContent"></div>
+  </div>
+</div>
+
 <!-- 상품에 적용 모달 -->
 <div class="modal-overlay" id="apply-photo-modal">
   <div class="modal" style="width:400px;">
@@ -508,6 +581,7 @@
     if (name === 'products') loadProducts().then(() => renderProductsTable());
     if (name === 'dashboard') loadProducts().then(() => renderDashboard());
     if (name === 'inventory') loadProducts().then(() => renderInventory());
+    if (name === 'orders') loadOrders();
     if (name === 'photos') loadPhotos();
     if (name === 'reviews') loadAdminReviews();
   }
@@ -1087,11 +1161,151 @@
       .catch(() => alert('삭제 실패'));
   }
 
+  // ── 주문 통계 ──
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/admin/orders/stats');
+      const d = await res.json();
+      document.getElementById('stat-today').textContent = d.today_count || 0;
+      document.getElementById('stat-revenue').textContent = (d.month_revenue || 0).toLocaleString();
+      document.getElementById('stat-pending').textContent = d.pending_count || 0;
+      document.getElementById('stat-shipping').textContent = d.shipping_count || 0;
+    } catch(e) { console.error('통계 로드 실패', e); }
+  }
+
+  // ── 주문 관리 ──
+  async function loadOrders() {
+    const search   = document.getElementById('orderSearch')?.value || '';
+    const status   = document.getElementById('orderStatus')?.value || '전체';
+    const dateFrom = document.getElementById('orderDateFrom')?.value || '';
+    const dateTo   = document.getElementById('orderDateTo')?.value || '';
+    const params   = new URLSearchParams({ status, search, date_from: dateFrom, date_to: dateTo });
+    try {
+      const res    = await fetch(`/api/admin/orders?${params}`);
+      const orders = await res.json();
+      renderOrderTable(orders);
+    } catch(e) {
+      document.getElementById('orderTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#A32D2D;">불러오기 실패</td></tr>';
+    }
+  }
+
+  function renderOrderTable(orders) {
+    const tbody = document.getElementById('orderTableBody');
+    if (!orders.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">주문 없음</td></tr>'; return; }
+    tbody.innerHTML = orders.map(o => {
+      const items = Array.isArray(o.items) ? o.items : [];
+      const itemSummary = items.length ? `${items[0].name || '상품'}${items.length > 1 ? ' 외 ' + (items.length-1) + '건' : ''}` : '-';
+      const orderDate = o.created_at ? new Date(o.created_at).toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+      return `<tr>
+        <td><a href="#" onclick="openOrderModal(${o.id});return false;" style="color:var(--green);font-weight:500;">${o.order_number}</a></td>
+        <td style="white-space:nowrap;">${orderDate}</td>
+        <td>${o.guest_name || o.recipient_name || '-'}</td>
+        <td>${o.guest_phone || o.recipient_phone || '-'}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${itemSummary}</td>
+        <td style="font-weight:500;">${(o.total_price||0).toLocaleString()}원</td>
+        <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+        <td>
+          <select onchange="changeOrderStatus(${o.id},this.value)" style="padding:4px 8px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:11px;font-family:var(--sans);background:var(--bg);">
+            <option value="">상태변경</option>
+            <option value="결제대기">결제대기</option>
+            <option value="결제완료">결제완료</option>
+            <option value="배송준비">배송준비</option>
+            <option value="배송중">배송중</option>
+            <option value="배송완료">배송완료</option>
+            <option value="취소">취소</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function changeOrderStatus(orderId, status) {
+    if (!status) return;
+    if (!confirm(`"${status}"(으)로 변경할까요?`)) return;
+    await fetch(`/api/admin/orders/${orderId}/status`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status })
+    });
+    loadOrders(); loadStats();
+  }
+
+  let allOrdersCache = [];
+  async function openOrderModal(orderId) {
+    if (!allOrdersCache.length) {
+      const res = await fetch('/api/admin/orders');
+      allOrdersCache = await res.json();
+    }
+    const o = allOrdersCache.find(x => x.id === orderId);
+    if (!o) return;
+    const items = Array.isArray(o.items) ? o.items : [];
+    const itemsHtml = items.map(i => `<tr><td style="padding:6px 8px;">${i.name || '-'}</td><td style="padding:6px 8px;">${i.qty || 1}개</td><td style="padding:6px 8px;">${(i.price || 0).toLocaleString()}원</td></tr>`).join('');
+    document.getElementById('orderModalContent').innerHTML = `
+      <div style="margin-bottom:16px;font-size:13px;line-height:1.8;">
+        <b>주문번호:</b> ${o.order_number}<br>
+        <b>주문일시:</b> ${o.created_at ? new Date(o.created_at).toLocaleString('ko-KR') : ''}<br>
+        <b>상태:</b> <span class="status-badge status-${o.status}">${o.status}</span>
+      </div>
+      <div style="margin-bottom:16px;font-size:13px;line-height:1.8;">
+        <b>주문자:</b> ${o.guest_name || '-'} / ${o.guest_phone || '-'}<br>
+        <b>수령인:</b> ${o.recipient_name || '-'} / ${o.recipient_phone || '-'}<br>
+        <b>주소:</b> ${o.address || ''} ${o.address_detail || ''}<br>
+        <b>배송메모:</b> ${o.memo || '-'}
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13px;">
+        <thead><tr style="background:var(--bg2);"><th style="padding:6px 8px;text-align:left;font-weight:400;color:var(--gray);">상품</th><th style="padding:6px 8px;font-weight:400;color:var(--gray);">수량</th><th style="padding:6px 8px;font-weight:400;color:var(--gray);">가격</th></tr></thead>
+        <tbody>${itemsHtml}</tbody>
+        <tfoot><tr><td colspan="2" style="padding:6px 8px;text-align:right;font-weight:500;">합계</td><td style="padding:6px 8px;font-weight:500;">${(o.total_price||0).toLocaleString()}원</td></tr></tfoot>
+      </table>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">운송장 등록</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="courierSelect" style="padding:6px 10px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:12px;font-family:var(--sans);background:var(--bg);">
+            <option value="">택배사 선택</option>
+            <option value="CJ대한통운" ${o.courier==='CJ대한통운'?'selected':''}>CJ대한통운</option>
+            <option value="롯데택배" ${o.courier==='롯데택배'?'selected':''}>롯데택배</option>
+            <option value="우체국" ${o.courier==='우체국'?'selected':''}>우체국</option>
+            <option value="한진택배" ${o.courier==='한진택배'?'selected':''}>한진택배</option>
+          </select>
+          <input id="trackingInput" type="text" placeholder="운송장 번호" value="${o.tracking_number||''}" style="flex:1;padding:6px 10px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:12px;font-family:var(--sans);background:var(--bg);">
+          <button class="btn btn--primary" style="font-size:11px;padding:6px 14px;" onclick="saveTracking(${o.id})">등록</button>
+        </div>
+        ${o.courier ? `<div style="margin-top:6px;color:var(--green);font-size:12px;">현재: ${o.courier} / ${o.tracking_number}</div>` : ''}
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">내부 메모</div>
+        <textarea id="adminMemoInput" rows="3" style="width:100%;padding:8px 10px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:12px;font-family:var(--sans);background:var(--bg);resize:vertical;">${o.admin_memo||''}</textarea>
+        <button class="btn btn--outline" style="font-size:11px;padding:6px 14px;margin-top:6px;" onclick="saveMemo(${o.id})">메모 저장</button>
+      </div>`;
+    document.getElementById('order-modal').classList.add('open');
+  }
+
+  async function saveTracking(orderId) {
+    const courier = document.getElementById('courierSelect').value;
+    const tracking_number = document.getElementById('trackingInput').value.trim();
+    if (!courier || !tracking_number) { alert('택배사와 운송장 번호를 모두 입력해주세요.'); return; }
+    await fetch(`/api/admin/orders/${orderId}/tracking`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ courier, tracking_number })
+    });
+    alert('운송장이 등록되었습니다.');
+    allOrdersCache = [];
+    document.getElementById('order-modal').classList.remove('open');
+    loadOrders(); loadStats();
+  }
+
+  async function saveMemo(orderId) {
+    const admin_memo = document.getElementById('adminMemoInput').value;
+    await fetch(`/api/admin/orders/${orderId}/status`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ admin_memo })
+    });
+    allOrdersCache = [];
+    alert('메모가 저장되었습니다.');
+  }
+
   // 초기 렌더: 서버에서 상품 로드 후 대시보드 표시
   loadProducts().then(() => {
     renderDashboard();
     updateGiftSeasonBadge();
   });
+  loadStats();
 </script>
 </body>
 </html>

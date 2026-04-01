@@ -379,31 +379,35 @@
         return { id: item.id, name: p ? p.name : '', qty: item.qty, price: p ? p.price : 0 };
       });
 
+      const token = localStorage.getItem('hb_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       // 주문 API 호출
       fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          channel: '자체몰',
-          customer_name: name,
-          customer_phone: phone,
-          customer_email: user.email || '',
-          address: `(${postcode}) ${addrMain} ${addrDetail}`,
+          user_id: user ? user.id : null,
+          guest_name: name,
+          guest_phone: phone,
           items,
           total_price: subtotal + delivery,
+          recipient_name: name,
+          recipient_phone: phone,
+          address: `(${postcode}) ${addrMain}`,
+          address_detail: addrDetail,
           memo
         })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.order_number) {
-          // 장바구니 비우기
+        if (data.success) {
           localStorage.setItem('hb_cart', '[]');
           Cart.updateBadge();
+          localStorage.setItem('hb_last_order', data.order_number);
           showAlert('success', `주문이 완료되었습니다! 주문번호: ${data.order_number}`);
           renderCheckoutItems();
-          // 토스페이먼츠 연동 예정
-          // 현재는 주문 접수만 처리
         } else {
           showAlert('error', data.error || '주문에 실패했습니다');
         }
@@ -413,10 +417,23 @@
       });
     }
 
+    // 택배사 조회 URL
+    const COURIER_URLS = {
+      'CJ대한통운': 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=',
+      '롯데택배': 'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=',
+      '우체국': 'https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=',
+      '한진택배': 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&schLang=KR&wblnumText2='
+    };
+
     // 주문내역 로드
     function loadOrderHistory() {
       const container = document.getElementById('order-history');
-      fetch('/api/orders')
+      const token = localStorage.getItem('hb_token');
+      if (!token) {
+        container.innerHTML = '<div class="order-history-empty">로그인이 필요합니다</div>';
+        return;
+      }
+      fetch('/api/orders/my', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => res.json())
         .then(orders => {
           if (!orders.length) {
@@ -426,7 +443,12 @@
           container.innerHTML = orders.map(o => {
             const statusClass = o.status === '배송완료' ? 'status--done'
               : o.status === '배송중' ? 'status--shipping' : 'status--pending';
-            const itemNames = (o.items || []).map(i => i.name).join(', ');
+            const items = Array.isArray(o.items) ? o.items : [];
+            const itemNames = items.map(i => i.name || '상품').join(', ');
+            const trackingBtn = o.tracking_number && o.courier
+              ? `<a href="${COURIER_URLS[o.courier] || '#'}${o.tracking_number}" target="_blank"
+                   style="display:inline-block;margin-top:8px;padding:6px 14px;background:var(--green);color:var(--bg);border-radius:2px;text-decoration:none;font-size:12px;letter-spacing:0.04em;">
+                   배송조회 (${o.courier})</a>` : '';
             return `
               <div class="order-history-item">
                 <div class="order-history-item__header">
@@ -438,6 +460,7 @@
                 </div>
                 <div style="font-size:13px;color:var(--text-md);">${itemNames}</div>
                 <div style="font-size:14px;font-weight:500;margin-top:8px;">${Number(o.total_price).toLocaleString()}원</div>
+                ${trackingBtn}
               </div>`;
           }).join('');
         })
