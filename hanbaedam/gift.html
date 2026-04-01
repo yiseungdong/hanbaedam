@@ -379,20 +379,37 @@
     renderRecommend('holiday');
 
     /* ── 선물세트 상품 렌더 (구성품 토글 포함) ── */
-    const giftProducts = PRODUCTS.filter(p => p.category === 'gift');
     const GIFT_COMPONENTS = '고구마 2kg + 잣 300g + 곤드레나물 100g + 조청 500g';
 
-    document.getElementById('gift-products-grid').innerHTML = giftProducts.map(p => `
-      <div class="product-card">
-        <div class="product-card__img" style="background:${p.color};" onclick="location.href='product-detail.html?id=${p.id}'">
-          <div class="product-card__badge">${p.badge}</div>
-        </div>
-        <div class="product-card__name">${p.name}</div>
-        <div class="product-card__desc">${p.desc}</div>
-        <div class="product-card__price">${p.price.toLocaleString()}원 / ${p.unit}</div>
-        <button class="gift-card__toggle" onclick="this.nextElementSibling.classList.toggle('open'); this.textContent = this.nextElementSibling.classList.contains('open') ? '구성품 닫기' : '구성품 보기';">구성품 보기</button>
-        <div class="gift-card__detail">${GIFT_COMPONENTS}</div>
-      </div>`).join('');
+    function renderGiftCard(p) {
+      const imgContent = p.image
+        ? `<img src="${p.image}" alt="${p.name}">`
+        : '';
+      return `
+        <div class="product-card">
+          <div class="product-card__img" style="background:${p.color || '#EEEADF'};" onclick="location.href='product-detail.html?id=${p.id}'">
+            ${imgContent}
+            <div class="product-card__badge">${p.badge}</div>
+          </div>
+          <div class="product-card__name">${p.name}</div>
+          <div class="product-card__desc">${p.desc}</div>
+          <div class="product-card__price">${Number(p.price).toLocaleString()}원 / ${p.unit}</div>
+          <button class="gift-card__toggle" onclick="this.nextElementSibling.classList.toggle('open'); this.textContent = this.nextElementSibling.classList.contains('open') ? '구성품 닫기' : '구성품 보기';">구성품 보기</button>
+          <div class="gift-card__detail">${GIFT_COMPONENTS}</div>
+        </div>`;
+    }
+
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(products => {
+        products.forEach(p => { if (!p.image) p.image = ''; });
+        const giftProducts = products.filter(p => p.category === 'gift');
+        document.getElementById('gift-products-grid').innerHTML = giftProducts.map(renderGiftCard).join('');
+      })
+      .catch(() => {
+        const giftProducts = PRODUCTS.filter(p => p.category === 'gift');
+        document.getElementById('gift-products-grid').innerHTML = giftProducts.map(renderGiftCard).join('');
+      });
 
     /* ── 문의 폼 제출 ── */
     document.getElementById('gift-form').addEventListener('submit', function(e) {

@@ -76,7 +76,45 @@
     .modal-title { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 24px; }
     .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 0.5px solid var(--gray-lt); }
 
-    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .channel-grid { grid-template-columns: 1fr 1fr; } }
+    /* 사진 관리 */
+    .upload-zone {
+      border: 2px dashed var(--gray-lt); border-radius: var(--radius); padding: 48px; text-align: center;
+      cursor: pointer; transition: all .2s; background: var(--bg); margin-bottom: 28px;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--green-mid); background: var(--bg2); }
+    .upload-zone__text { font-size: 14px; color: var(--text-md); margin-bottom: 6px; }
+    .upload-zone__sub { font-size: 12px; color: var(--gray); font-weight: 300; }
+
+    .edit-panel {
+      display: none; background: var(--bg); border: 0.5px solid var(--gray-lt); border-radius: var(--radius);
+      padding: 24px; margin-bottom: 28px;
+    }
+    .edit-panel.visible { display: block; }
+    .canvas-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+    .canvas-wrap { text-align: center; }
+    .canvas-wrap__label { font-size: 11px; color: var(--gray); letter-spacing: 0.1em; margin-bottom: 8px; }
+    .canvas-wrap canvas { border: 0.5px solid var(--gray-lt); border-radius: 4px; background: #fff; }
+
+    .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 20px; }
+    .slider-group { display: flex; align-items: center; gap: 10px; }
+    .slider-group label { font-size: 12px; color: var(--text-md); min-width: 52px; }
+    .slider-group input[type=range] { flex: 1; accent-color: var(--green-mid); }
+    .slider-group .slider-val { font-size: 12px; color: var(--gray); min-width: 32px; text-align: right; }
+
+    .edit-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .photo-card {
+      background: var(--bg); border: 0.5px solid var(--gray-lt); border-radius: var(--radius); overflow: hidden;
+    }
+    .photo-card img { width: 100%; height: 125px; object-fit: cover; }
+    .photo-card__info { padding: 12px; }
+    .photo-card__name { font-size: 12px; font-weight: 400; margin-bottom: 4px; word-break: break-all; }
+    .photo-card__date { font-size: 11px; color: var(--gray); margin-bottom: 10px; }
+    .photo-card__actions { display: flex; gap: 6px; }
+    .photo-card__actions button { font-size: 11px; padding: 4px 10px; border-radius: 2px; cursor: pointer; font-family: var(--sans); }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .channel-grid { grid-template-columns: 1fr 1fr; } .slider-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -94,6 +132,7 @@
       <li><a href="#" onclick="showTab('channels')">채널 연동</a></li>
       <li><a href="#" onclick="showTab('orders')">주문 관리</a></li>
       <li><a href="#" onclick="showTab('inventory')">재고 관리</a></li>
+      <li><a href="#" onclick="showTab('photos')">사진 관리</a></li>
       <li><a href="../index.html" target="_blank" style="margin-top:20px;border-top:0.5px solid rgba(255,255,255,0.08);padding-top:16px;">← 쇼핑몰 보기</a></li>
     </ul>
   </aside>
@@ -266,7 +305,96 @@
       </div>
     </div>
 
+    <!-- 사진 관리 탭 -->
+    <div id="tab-photos" style="display:none;">
+      <div class="admin-header">
+        <div class="admin-title">사진 관리</div>
+      </div>
+      <div style="font-size:13px;color:var(--text-md);margin-bottom:20px;font-weight:300;">
+        핸드폰이나 카메라로 찍은 사진을 업로드하고 한백담 스타일로 보정하세요
+      </div>
+
+      <!-- 업로드 존 -->
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('photo-input').click()">
+        <div class="upload-zone__text">사진을 드래그하거나 클릭해서 선택</div>
+        <div class="upload-zone__sub">JPG, PNG, WEBP / 최대 10MB / 핸드폰 사진 OK</div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none">
+
+      <!-- 보정 패널 -->
+      <div class="edit-panel" id="edit-panel">
+        <div class="canvas-row">
+          <div class="canvas-wrap">
+            <div class="canvas-wrap__label">원본</div>
+            <canvas id="canvas-original" width="280" height="350"></canvas>
+          </div>
+          <div class="canvas-wrap">
+            <div class="canvas-wrap__label">보정후 ✨</div>
+            <canvas id="canvas-preview" width="280" height="350"></canvas>
+          </div>
+        </div>
+
+        <div class="slider-grid">
+          <div class="slider-group">
+            <label>밝기</label>
+            <input type="range" min="-100" max="100" value="0" id="sl-brightness" oninput="updateSlider(this)">
+            <span class="slider-val" id="val-brightness">0</span>
+          </div>
+          <div class="slider-group">
+            <label>대비</label>
+            <input type="range" min="-100" max="100" value="0" id="sl-contrast" oninput="updateSlider(this)">
+            <span class="slider-val" id="val-contrast">0</span>
+          </div>
+          <div class="slider-group">
+            <label>채도</label>
+            <input type="range" min="-100" max="100" value="0" id="sl-saturation" oninput="updateSlider(this)">
+            <span class="slider-val" id="val-saturation">0</span>
+          </div>
+          <div class="slider-group">
+            <label>웜톤</label>
+            <input type="range" min="0" max="100" value="0" id="sl-warmth" oninput="updateSlider(this)">
+            <span class="slider-val" id="val-warmth">0</span>
+          </div>
+          <div class="slider-group">
+            <label>선명도</label>
+            <input type="range" min="0" max="100" value="0" id="sl-sharpness" oninput="updateSlider(this)">
+            <span class="slider-val" id="val-sharpness">0</span>
+          </div>
+        </div>
+
+        <div class="edit-buttons">
+          <button class="btn btn--primary" style="font-size:12px;padding:9px 20px;" onclick="autoCorrect()">한백담 자동보정</button>
+          <button class="btn btn--outline" style="font-size:12px;padding:9px 20px;" onclick="resetSliders()">초기화</button>
+          <button class="btn" style="font-size:12px;padding:9px 20px;background:var(--dark);color:var(--bg);border:none;border-radius:2px;cursor:pointer;" onclick="saveToServer()">서버에 저장</button>
+        </div>
+      </div>
+
+      <!-- 저장된 사진 목록 -->
+      <div class="table-card" style="padding:18px 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="table-card__title">저장된 사진</div>
+          <button class="btn btn--outline" style="font-size:11px;padding:6px 14px;" onclick="loadPhotos()">새로고침</button>
+        </div>
+        <div class="photo-grid" id="photo-grid"></div>
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- 상품에 적용 모달 -->
+<div class="modal-overlay" id="apply-photo-modal">
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">상품에 사진 적용</div>
+    <div class="form-group">
+      <label>상품 선택</label>
+      <select id="apply-product-select" style="padding:10px 12px;border:0.5px solid var(--gray-lt);border-radius:2px;font-size:13px;font-family:var(--sans);background:var(--bg);color:var(--text);"></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--outline" onclick="document.getElementById('apply-photo-modal').classList.remove('open')">취소</button>
+      <button class="btn btn--primary" onclick="applyPhotoToProduct()">적용</button>
+    </div>
+  </div>
 </div>
 
 <!-- 상품 등록 모달 -->
@@ -300,16 +428,19 @@
 <script>
   let adminProducts = [...PRODUCTS];
 
+  const allTabs = ['dashboard','products','channels','orders','inventory','photos'];
+
   function showTab(name) {
-    ['dashboard','products','channels','orders','inventory'].forEach(t => {
+    allTabs.forEach(t => {
       document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
     });
     document.querySelectorAll('.sidebar__menu a').forEach((a,i) => {
-      a.classList.toggle('active', ['dashboard','products','channels','orders','inventory'][i] === name);
+      a.classList.toggle('active', allTabs[i] === name);
     });
     if (name === 'products') renderProductsTable();
     if (name === 'dashboard') renderDashboard();
     if (name === 'inventory') renderInventory();
+    if (name === 'photos') loadPhotos();
   }
 
   function renderDashboard() {
@@ -424,6 +555,216 @@
     } else {
       badgeEl.innerHTML = '<span class="badge badge--off">비시즌</span>';
     }
+  }
+
+  // ── 사진 관리 ──
+  let originalImage = null;
+  let applyingPhotoUrl = '';
+
+  // 드래그앤드롭
+  const uploadZone = document.getElementById('upload-zone');
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  document.getElementById('photo-input').addEventListener('change', e => {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  });
+
+  function handleFile(file) {
+    if (file.size > 10 * 1024 * 1024) { alert('10MB 이하 파일만 업로드 가능합니다'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        originalImage = img;
+        resetSliders();
+        drawOriginal();
+        applyFilters();
+        document.getElementById('edit-panel').classList.add('visible');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function drawOriginal() {
+    const c = document.getElementById('canvas-original');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    const scale = Math.min(c.width / originalImage.width, c.height / originalImage.height);
+    const w = originalImage.width * scale, h = originalImage.height * scale;
+    const x = (c.width - w) / 2, y = (c.height - h) / 2;
+    ctx.drawImage(originalImage, x, y, w, h);
+  }
+
+  function getSliderValues() {
+    return {
+      brightness: +document.getElementById('sl-brightness').value,
+      contrast: +document.getElementById('sl-contrast').value,
+      saturation: +document.getElementById('sl-saturation').value,
+      warmth: +document.getElementById('sl-warmth').value,
+      sharpness: +document.getElementById('sl-sharpness').value
+    };
+  }
+
+  function updateSlider(el) {
+    const name = el.id.replace('sl-', '');
+    document.getElementById('val-' + name).textContent = el.value;
+    applyFilters();
+  }
+
+  function applyFilters() {
+    if (!originalImage) return;
+    const c = document.getElementById('canvas-preview');
+    const ctx = c.getContext('2d');
+    const s = getSliderValues();
+
+    // CSS filter for brightness, contrast, saturation, warmth(sepia)
+    const b = 1 + s.brightness / 100;
+    const co = 1 + s.contrast / 100;
+    const sa = 1 + s.saturation / 100;
+    const se = s.warmth / 200;
+    ctx.filter = `brightness(${b}) contrast(${co}) saturate(${sa}) sepia(${se})`;
+
+    ctx.clearRect(0, 0, c.width, c.height);
+    const scale = Math.min(c.width / originalImage.width, c.height / originalImage.height);
+    const w = originalImage.width * scale, h = originalImage.height * scale;
+    const x = (c.width - w) / 2, y = (c.height - h) / 2;
+    ctx.drawImage(originalImage, x, y, w, h);
+
+    // 선명도 (unsharp mask)
+    if (s.sharpness > 0) {
+      ctx.filter = 'none';
+      const imgData = ctx.getImageData(0, 0, c.width, c.height);
+      const sharpened = unsharpMask(imgData, s.sharpness / 100);
+      ctx.putImageData(sharpened, 0, 0);
+    }
+  }
+
+  function unsharpMask(imgData, amount) {
+    const d = imgData.data;
+    const w = imgData.width, h = imgData.height;
+    const copy = new Uint8ClampedArray(d);
+    const strength = amount * 1.5;
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = (y * w + x) * 4;
+        for (let c = 0; c < 3; c++) {
+          const neighbors =
+            copy[((y-1)*w+x-1)*4+c] + copy[((y-1)*w+x)*4+c] + copy[((y-1)*w+x+1)*4+c] +
+            copy[(y*w+x-1)*4+c]     +                           copy[(y*w+x+1)*4+c] +
+            copy[((y+1)*w+x-1)*4+c] + copy[((y+1)*w+x)*4+c] + copy[((y+1)*w+x+1)*4+c];
+          const blur = neighbors / 8;
+          const diff = copy[i+c] - blur;
+          d[i+c] = Math.min(255, Math.max(0, copy[i+c] + diff * strength));
+        }
+      }
+    }
+    return imgData;
+  }
+
+  function autoCorrect() {
+    document.getElementById('sl-brightness').value = 15;
+    document.getElementById('sl-contrast').value = 10;
+    document.getElementById('sl-saturation').value = 10;
+    document.getElementById('sl-warmth').value = 20;
+    document.getElementById('sl-sharpness').value = 15;
+    ['brightness','contrast','saturation','warmth','sharpness'].forEach(n => {
+      document.getElementById('val-' + n).textContent = document.getElementById('sl-' + n).value;
+    });
+    applyFilters();
+  }
+
+  function resetSliders() {
+    ['brightness','contrast','saturation'].forEach(n => {
+      document.getElementById('sl-' + n).value = 0;
+      document.getElementById('val-' + n).textContent = '0';
+    });
+    ['warmth','sharpness'].forEach(n => {
+      document.getElementById('sl-' + n).value = 0;
+      document.getElementById('val-' + n).textContent = '0';
+    });
+    applyFilters();
+  }
+
+  function saveToServer() {
+    if (!originalImage) { alert('먼저 사진을 업로드하세요'); return; }
+    const c = document.getElementById('canvas-preview');
+    c.toBlob(blob => {
+      const form = new FormData();
+      form.append('image', blob, 'photo_' + Date.now() + '.png');
+      fetch('/api/upload', { method: 'POST', body: form })
+        .then(r => r.json())
+        .then(data => {
+          alert('저장 완료!');
+          loadPhotos();
+        })
+        .catch(() => alert('저장 실패'));
+    }, 'image/png');
+  }
+
+  function loadPhotos() {
+    fetch('/api/photos')
+      .then(r => r.json())
+      .then(photos => {
+        const grid = document.getElementById('photo-grid');
+        if (!photos.length) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray);font-size:13px;">저장된 사진이 없습니다</div>';
+          return;
+        }
+        grid.innerHTML = photos.map(p => `
+          <div class="photo-card">
+            <img src="${p.url}" alt="${p.filename}" loading="lazy">
+            <div class="photo-card__info">
+              <div class="photo-card__name">${p.filename}</div>
+              <div class="photo-card__date">${p.date}</div>
+              <div class="photo-card__actions">
+                <button style="border:0.5px solid var(--gray-lt);background:transparent;color:var(--text-md);" onclick="openApplyModal('${p.url}')">상품에 적용</button>
+                <button style="border:0.5px solid #F09595;background:transparent;color:#A32D2D;" onclick="deletePhoto('${p.filename}')">삭제</button>
+              </div>
+            </div>
+          </div>`).join('');
+      })
+      .catch(() => {
+        document.getElementById('photo-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray);font-size:13px;">사진 목록을 불러올 수 없습니다</div>';
+      });
+  }
+
+  function deletePhoto(filename) {
+    if (!confirm(`"${filename}" 을(를) 삭제하시겠습니까?`)) return;
+    fetch('/api/photos/' + encodeURIComponent(filename), { method: 'DELETE' })
+      .then(r => r.json())
+      .then(() => loadPhotos())
+      .catch(() => alert('삭제 실패'));
+  }
+
+  function openApplyModal(url) {
+    applyingPhotoUrl = url;
+    const select = document.getElementById('apply-product-select');
+    select.innerHTML = adminProducts.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    document.getElementById('apply-photo-modal').classList.add('open');
+  }
+
+  function applyPhotoToProduct() {
+    const productId = document.getElementById('apply-product-select').value;
+    const product = adminProducts.find(p => String(p.id) === productId);
+    if (!product) return;
+    fetch('/api/products/' + productId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...product, image: applyingPhotoUrl })
+    })
+      .then(r => r.json())
+      .then(() => {
+        product.image = applyingPhotoUrl;
+        alert('사진이 상품에 적용되었습니다');
+        document.getElementById('apply-photo-modal').classList.remove('open');
+      })
+      .catch(() => alert('적용 실패'));
   }
 
   // 초기 렌더

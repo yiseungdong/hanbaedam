@@ -1,0 +1,4 @@
+node_modules/
+hanbaedam.db
+.env
+uploads/
