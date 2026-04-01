@@ -397,10 +397,11 @@
   </div>
 </div>
 
-<!-- 상품 등록 모달 -->
+<!-- 상품 등록/수정 모달 -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
-    <div class="modal-title">상품 등록</div>
+    <div class="modal-title" id="modal-title">상품 등록</div>
+    <input type="hidden" id="f-id" value="">
     <div class="form-grid">
       <div class="form-group"><label>상품명</label><input type="text" id="f-name" placeholder="예: 홍천 고구마"></div>
       <div class="form-group"><label>카테고리</label>
@@ -413,22 +414,41 @@
       <div class="form-group" style="grid-column:1/-1;"><label>짧은 설명</label><input type="text" id="f-desc" placeholder="한 줄 설명"></div>
       <div class="form-group" style="grid-column:1/-1;"><label>상세 설명</label><textarea id="f-detail" placeholder="상품 상세 설명"></textarea></div>
       <div class="form-group" style="grid-column:1/-1;"><label>태그 (쉼표 구분)</label><input type="text" id="f-tags" placeholder="무농약, 강원도, 선물"></div>
+      <!-- 사진 업로드 -->
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>상품 사진</label>
+        <div id="f-image-preview" style="margin-bottom:8px;display:none;">
+          <img id="f-image-thumb" src="" style="width:120px;height:120px;object-fit:cover;border-radius:4px;border:0.5px solid var(--gray-lt);">
+          <button type="button" style="display:block;margin-top:6px;font-size:11px;color:#A32D2D;border:none;background:none;cursor:pointer;font-family:var(--sans);" onclick="clearProductImage()">사진 제거</button>
+        </div>
+        <input type="file" id="f-image" accept="image/jpg,image/jpeg,image/png,image/webp" style="font-size:12px;">
+        <input type="hidden" id="f-image-url" value="">
+      </div>
     </div>
     <div style="background:#EAF3DE;border-radius:4px;padding:12px 16px;margin-top:16px;font-size:12px;color:#27500A;">
       등록 시 연동된 채널(현재: 네이버 스마트스토어)에 자동 반영됩니다
     </div>
     <div class="modal-footer">
       <button class="btn btn--outline" onclick="closeModal()">취소</button>
-      <button class="btn btn--primary" onclick="addProduct()">등록하기</button>
+      <button class="btn btn--primary" id="modal-submit-btn" onclick="saveProduct()">등록하기</button>
     </div>
   </div>
 </div>
 
 <script src="../js/main.js"></script>
 <script>
-  let adminProducts = [...PRODUCTS];
+  let adminProducts = [];
 
   const allTabs = ['dashboard','products','channels','orders','inventory','photos'];
+  const CAT_LABEL = {fresh:'신선식품',processed:'가공식품',gift:'선물세트'};
+
+  // ── 서버에서 상품 목록 로드 ──
+  function loadProducts() {
+    return fetch('/api/products')
+      .then(r => r.json())
+      .then(products => { adminProducts = products; return products; })
+      .catch(() => { adminProducts = [...PRODUCTS]; return adminProducts; });
+  }
 
   function showTab(name) {
     allTabs.forEach(t => {
@@ -437,9 +457,9 @@
     document.querySelectorAll('.sidebar__menu a').forEach((a,i) => {
       a.classList.toggle('active', allTabs[i] === name);
     });
-    if (name === 'products') renderProductsTable();
-    if (name === 'dashboard') renderDashboard();
-    if (name === 'inventory') renderInventory();
+    if (name === 'products') loadProducts().then(() => renderProductsTable());
+    if (name === 'dashboard') loadProducts().then(() => renderDashboard());
+    if (name === 'inventory') loadProducts().then(() => renderInventory());
     if (name === 'photos') loadPhotos();
   }
 
@@ -450,8 +470,8 @@
     document.getElementById('dashboard-product-table').innerHTML = adminProducts.map(p => `
       <tr>
         <td style="font-weight:400;">${p.name}</td>
-        <td>${{fresh:'신선식품',processed:'가공식품',gift:'선물세트'}[p.category]}</td>
-        <td>${p.price.toLocaleString()}원</td>
+        <td>${CAT_LABEL[p.category] || p.category}</td>
+        <td>${Number(p.price).toLocaleString()}원</td>
         <td style="color:${p.stock < 10 ? '#c0392b' : 'inherit'}">${p.stock}개</td>
         <td><span class="badge badge--on">연동</span></td>
         <td><span class="badge badge--off">미연동</span></td>
@@ -460,19 +480,25 @@
 
   function renderProductsTable() {
     document.getElementById('prod-count').textContent = `(${adminProducts.length}개)`;
-    document.getElementById('products-table').innerHTML = adminProducts.map(p => `
+    document.getElementById('products-table').innerHTML = adminProducts.map(p => {
+      const tags = Array.isArray(p.tags) ? p.tags : [];
+      const imgThumb = p.image
+        ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:8px;">`
+        : '';
+      return `
       <tr>
-        <td style="font-weight:400;">${p.name}</td>
-        <td>${{fresh:'신선식품',processed:'가공식품',gift:'선물세트'}[p.category]}</td>
-        <td>${p.price.toLocaleString()}원</td>
+        <td style="font-weight:400;">${imgThumb}${p.name}</td>
+        <td>${CAT_LABEL[p.category] || p.category}</td>
+        <td>${Number(p.price).toLocaleString()}원</td>
         <td>${p.unit}</td>
         <td style="color:${p.stock < 10 ? '#c0392b' : 'inherit'}">${p.stock}개</td>
-        <td>${p.tags.map(t => `<span style="font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:2px;margin-right:4px;">${t}</span>`).join('')}</td>
+        <td>${tags.map(t => `<span style="font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:2px;margin-right:4px;">${t}</span>`).join('')}</td>
         <td>
-          <button style="font-size:11px;padding:4px 10px;border:0.5px solid var(--gray-lt);background:transparent;border-radius:2px;cursor:pointer;margin-right:6px;" onclick="alert('수정 기능은 서버 연동 후 활성화됩니다')">수정</button>
+          <button style="font-size:11px;padding:4px 10px;border:0.5px solid var(--gray-lt);background:transparent;border-radius:2px;cursor:pointer;margin-right:6px;" onclick="openEditModal(${p.id})">수정</button>
           <button style="font-size:11px;padding:4px 10px;border:0.5px solid #F09595;background:transparent;color:#A32D2D;border-radius:2px;cursor:pointer;" onclick="deleteProduct(${p.id})">삭제</button>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   function renderInventory() {
@@ -487,19 +513,102 @@
 
   function updateStock(id, val) {
     const p = adminProducts.find(x => x.id === id);
-    if (p) { p.stock = parseInt(val); renderInventory(); }
+    if (!p) return;
+    p.stock = parseInt(val);
+    fetch('/api/products/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...p, tags: Array.isArray(p.tags) ? p.tags : [] })
+    }).then(() => renderInventory()).catch(() => alert('재고 수정 실패'));
   }
 
-  function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+  // ── 모달: 등록/수정 공용 ──
+  function resetForm() {
+    document.getElementById('f-id').value = '';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-cat').value = 'fresh';
+    document.getElementById('f-price').value = '';
+    document.getElementById('f-unit').value = '';
+    document.getElementById('f-stock').value = '';
+    document.getElementById('f-badge').value = '';
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-detail').value = '';
+    document.getElementById('f-tags').value = '';
+    document.getElementById('f-image').value = '';
+    document.getElementById('f-image-url').value = '';
+    document.getElementById('f-image-preview').style.display = 'none';
+  }
+
+  function openAddModal() {
+    resetForm();
+    document.getElementById('modal-title').textContent = '상품 등록';
+    document.getElementById('modal-submit-btn').textContent = '등록하기';
+    document.getElementById('add-modal').classList.add('open');
+  }
+
+  function openEditModal(id) {
+    const p = adminProducts.find(x => x.id === id);
+    if (!p) return;
+    resetForm();
+    document.getElementById('modal-title').textContent = '상품 수정';
+    document.getElementById('modal-submit-btn').textContent = '저장하기';
+    document.getElementById('f-id').value = p.id;
+    document.getElementById('f-name').value = p.name;
+    document.getElementById('f-cat').value = p.category;
+    document.getElementById('f-price').value = p.price;
+    document.getElementById('f-unit').value = p.unit;
+    document.getElementById('f-stock').value = p.stock;
+    document.getElementById('f-badge').value = p.badge;
+    document.getElementById('f-desc').value = p.desc || '';
+    document.getElementById('f-detail').value = p.detail || '';
+    const tags = Array.isArray(p.tags) ? p.tags : [];
+    document.getElementById('f-tags').value = tags.join(', ');
+    // 기존 사진 미리보기
+    if (p.image) {
+      document.getElementById('f-image-url').value = p.image;
+      document.getElementById('f-image-thumb').src = p.image;
+      document.getElementById('f-image-preview').style.display = 'block';
+    }
+    document.getElementById('add-modal').classList.add('open');
+  }
+
   function closeModal() { document.getElementById('add-modal').classList.remove('open'); }
 
-  function addProduct() {
+  function clearProductImage() {
+    document.getElementById('f-image-url').value = '';
+    document.getElementById('f-image').value = '';
+    document.getElementById('f-image-preview').style.display = 'none';
+  }
+
+  // ── 사진 업로드 후 저장 ──
+  async function uploadImage(file) {
+    const form = new FormData();
+    form.append('image', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await res.json();
+    return data.url;
+  }
+
+  // ── 등록 / 수정 통합 ──
+  async function saveProduct() {
     const name = document.getElementById('f-name').value.trim();
     if (!name) { alert('상품명을 입력해주세요'); return; }
-    const newProd = {
-      id: Date.now(),
-      category: document.getElementById('f-cat').value,
+
+    const editId = document.getElementById('f-id').value;
+    const isEdit = !!editId;
+
+    // 새 사진 업로드 처리
+    let imageUrl = document.getElementById('f-image-url').value;
+    const fileInput = document.getElementById('f-image');
+    if (fileInput.files.length > 0) {
+      try {
+        imageUrl = await uploadImage(fileInput.files[0]);
+      } catch { alert('사진 업로드 실패'); return; }
+    }
+
+    const productData = {
       name,
+      category: document.getElementById('f-cat').value,
       desc: document.getElementById('f-desc').value,
       detail: document.getElementById('f-detail').value,
       price: parseInt(document.getElementById('f-price').value) || 0,
@@ -508,18 +617,38 @@
       color: '#D8D8D0',
       tags: document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean),
       stock: parseInt(document.getElementById('f-stock').value) || 0,
-      naver_id: '', coupang_id: ''
+      image: imageUrl || ''
     };
-    adminProducts.push(newProd);
-    closeModal();
-    alert(`"${name}" 등록 완료!\n연동된 채널에 반영 중...`);
-    showTab('products');
+
+    try {
+      if (isEdit) {
+        await fetch('/api/products/' + editId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData)
+        });
+        alert(`"${name}" 수정 완료!`);
+      } else {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData)
+        });
+        alert(`"${name}" 등록 완료!\n연동된 채널에 반영 중...`);
+      }
+      closeModal();
+      showTab('products');
+    } catch {
+      alert(isEdit ? '수정 실패' : '등록 실패');
+    }
   }
 
   function deleteProduct(id) {
     if (!confirm('상품을 삭제하시겠습니까?')) return;
-    adminProducts = adminProducts.filter(p => p.id !== id);
-    renderProductsTable();
+    fetch('/api/products/' + id, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(() => { showTab('products'); })
+      .catch(() => alert('삭제 실패'));
   }
 
   function showChannelSetup(name) {
@@ -767,9 +896,11 @@
       .catch(() => alert('적용 실패'));
   }
 
-  // 초기 렌더
-  renderDashboard();
-  updateGiftSeasonBadge();
+  // 초기 렌더: 서버에서 상품 로드 후 대시보드 표시
+  loadProducts().then(() => {
+    renderDashboard();
+    updateGiftSeasonBadge();
+  });
 </script>
 </body>
 </html>
