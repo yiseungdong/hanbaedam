@@ -72,6 +72,11 @@ async function initDB() {
   try { db.run('ALTER TABLE orders ADD COLUMN courier TEXT DEFAULT ""'); } catch(e) {}
   try { db.run('ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'); } catch(e) {}
 
+  // users 테이블 배송지 컬럼 추가
+  try { db.run('ALTER TABLE users ADD COLUMN saved_zipcode TEXT DEFAULT ""'); } catch(e) {}
+  try { db.run('ALTER TABLE users ADD COLUMN saved_address TEXT DEFAULT ""'); } catch(e) {}
+  try { db.run('ALTER TABLE users ADD COLUMN saved_address_detail TEXT DEFAULT ""'); } catch(e) {}
+
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

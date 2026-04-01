@@ -340,6 +340,29 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, name: user.name } });
 });
 
+// ── 배송지 저장/조회 API ──
+
+app.post('/api/user/address', (req, res) => {
+  const user = verifyToken(req);
+  if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
+  const db = getDB();
+  const { zipcode, address, address_detail } = req.body;
+  db.run(`UPDATE users SET saved_zipcode=?, saved_address=?, saved_address_detail=? WHERE id=?`,
+    [zipcode || '', address || '', address_detail || '', user.id]);
+  saveDB();
+  res.json({ success: true });
+});
+
+app.get('/api/user/address', (req, res) => {
+  const user = verifyToken(req);
+  if (!user || !user.id) return res.status(401).json({ error: '로그인이 필요합니다' });
+  const db = getDB();
+  const result = db.exec(`SELECT saved_zipcode, saved_address, saved_address_detail FROM users WHERE id=${Number(user.id)}`);
+  if (!result.length || !result[0].values.length) return res.json({});
+  const row = rowToObj(result[0].columns, result[0].values)[0];
+  res.json(row);
+});
+
 // ── 후기 API ──
 
 function parseReview(row) {

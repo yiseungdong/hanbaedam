@@ -168,68 +168,8 @@
       </div>
     </div>
 
-    <!-- 탭 -->
-    <div class="mypage-tabs">
-      <button class="mypage-tab active" data-tab="checkout">주문/결제</button>
-      <button class="mypage-tab" data-tab="orders">주문내역</button>
-    </div>
-
-    <!-- 주문/결제 탭 -->
-    <div class="mypage-panel active" id="panel-checkout">
-      <!-- 배송지 -->
-      <div class="address-section">
-        <h3>배송 정보</h3>
-        <div class="form-group">
-          <label>수령인</label>
-          <input type="text" id="addr-name" placeholder="수령인 이름">
-        </div>
-        <div class="form-group">
-          <label>연락처</label>
-          <input type="tel" id="addr-phone" placeholder="010-0000-0000" maxlength="13">
-        </div>
-        <div class="form-group">
-          <label>주소</label>
-          <div class="form-row">
-            <input type="text" id="addr-postcode" placeholder="우편번호" readonly>
-            <button type="button" class="btn--addr" onclick="searchAddress()">주소 검색</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <input type="text" id="addr-main" placeholder="기본 주소" readonly>
-        </div>
-        <div class="form-group">
-          <input type="text" id="addr-detail" placeholder="상세 주소 (동/호수 등)">
-        </div>
-        <div class="form-group">
-          <label>배송 메모</label>
-          <textarea id="addr-memo" placeholder="배송 시 요청사항 (예: 문 앞에 놓아주세요)"></textarea>
-        </div>
-        <label class="save-addr">
-          <input type="checkbox" id="save-address" checked>
-          <span>이 배송지를 저장할게요</span>
-        </label>
-      </div>
-
-      <!-- 주문 상품 목록 -->
-      <div class="order-summary">
-        <h3>주문 상품</h3>
-        <div id="checkout-items"></div>
-      </div>
-
-      <!-- 결제 금액 -->
-      <div class="payment-box" id="payment-box" style="display:none;">
-        <div class="payment-row"><span>상품금액</span><span id="pay-subtotal"></span></div>
-        <div class="payment-row"><span>배송비</span><span id="pay-delivery"></span></div>
-        <div class="payment-row total"><span>총 결제금액</span><span id="pay-total"></span></div>
-      </div>
-
-      <button class="btn--pay" id="btn-pay" onclick="handlePayment()">결제하기</button>
-    </div>
-
-    <!-- 주문내역 탭 -->
-    <div class="mypage-panel" id="panel-orders">
-      <div id="order-history"></div>
-    </div>
+    <!-- 주문 내역 -->
+    <div id="order-history" style="margin-top:8px;"></div>
   </div>
 
   <!-- FOOTER -->
@@ -265,156 +205,6 @@
       document.getElementById('profile-avatar').textContent = (user.name || '').charAt(0);
       document.getElementById('profile-name').textContent = user.name + '님';
       document.getElementById('profile-id').textContent = '@' + user.username;
-    }
-
-    // 탭 전환
-    document.querySelectorAll('.mypage-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.mypage-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.mypage-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-        if (tab.dataset.tab === 'orders') loadOrderHistory();
-      });
-    });
-
-    // 전화번호 자동 하이픈
-    document.getElementById('addr-phone').addEventListener('input', function() {
-      let v = this.value.replace(/[^0-9]/g, '');
-      if (v.length > 11) v = v.slice(0, 11);
-      if (v.length > 7) this.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7);
-      else if (v.length > 3) this.value = v.slice(0, 3) + '-' + v.slice(3);
-      else this.value = v;
-    });
-
-    // 저장된 배송지 로드
-    const savedAddr = JSON.parse(localStorage.getItem('hb_address') || 'null');
-    if (savedAddr) {
-      document.getElementById('addr-name').value = savedAddr.name || '';
-      document.getElementById('addr-phone').value = savedAddr.phone || '';
-      document.getElementById('addr-postcode').value = savedAddr.postcode || '';
-      document.getElementById('addr-main').value = savedAddr.main || '';
-      document.getElementById('addr-detail').value = savedAddr.detail || '';
-      document.getElementById('addr-memo').value = savedAddr.memo || '';
-    } else if (user) {
-      document.getElementById('addr-name').value = user.name || '';
-    }
-
-    // 다음 카카오 주소 검색
-    function searchAddress() {
-      new daum.Postcode({
-        oncomplete: function(data) {
-          document.getElementById('addr-postcode').value = data.zonecode;
-          document.getElementById('addr-main').value = data.roadAddress || data.jibunAddress;
-          document.getElementById('addr-detail').focus();
-        }
-      }).open();
-    }
-
-    // 장바구니 상품 렌더
-    function renderCheckoutItems() {
-      const cart = Cart.get();
-      const container = document.getElementById('checkout-items');
-      const paymentBox = document.getElementById('payment-box');
-
-      if (cart.length === 0) {
-        container.innerHTML = '<div class="order-empty">장바구니가 비어 있습니다. <a href="products.html" style="color:var(--green);">상품 보러가기</a></div>';
-        paymentBox.style.display = 'none';
-        document.getElementById('btn-pay').disabled = true;
-        return;
-      }
-
-      container.innerHTML = cart.map(item => {
-        const p = PRODUCTS.find(x => x.id === item.id);
-        if (!p) return '';
-        return `
-          <div class="order-item">
-            <div class="order-item__img" style="background:${p.color};"></div>
-            <div>
-              <div class="order-item__name">${p.name}</div>
-              <div class="order-item__detail">${p.unit} x ${item.qty}개</div>
-            </div>
-            <div class="order-item__price">${(p.price * item.qty).toLocaleString()}원</div>
-          </div>`;
-      }).join('');
-
-      const subtotal = Cart.total();
-      const delivery = subtotal >= 50000 ? 0 : 3000;
-      paymentBox.style.display = 'block';
-      document.getElementById('pay-subtotal').textContent = subtotal.toLocaleString() + '원';
-      document.getElementById('pay-delivery').textContent = delivery === 0 ? '무료' : delivery.toLocaleString() + '원';
-      document.getElementById('pay-total').textContent = (subtotal + delivery).toLocaleString() + '원';
-      document.getElementById('btn-pay').disabled = false;
-    }
-
-    renderCheckoutItems();
-
-    // 결제
-    function handlePayment() {
-      const name = document.getElementById('addr-name').value.trim();
-      const phone = document.getElementById('addr-phone').value.trim();
-      const postcode = document.getElementById('addr-postcode').value.trim();
-      const addrMain = document.getElementById('addr-main').value.trim();
-      const addrDetail = document.getElementById('addr-detail').value.trim();
-      const memo = document.getElementById('addr-memo').value.trim();
-
-      if (!name) { showAlert('error', '수령인을 입력하세요'); return; }
-      if (!/^010-\d{4}-\d{4}$/.test(phone)) { showAlert('error', '올바른 연락처를 입력하세요'); return; }
-      if (!postcode || !addrMain) { showAlert('error', '주소를 검색해주세요'); return; }
-
-      const cart = Cart.get();
-      if (cart.length === 0) { showAlert('error', '장바구니가 비어 있습니다'); return; }
-
-      // 배송지 저장
-      if (document.getElementById('save-address').checked) {
-        localStorage.setItem('hb_address', JSON.stringify({
-          name, phone, postcode, main: addrMain, detail: addrDetail, memo
-        }));
-      }
-
-      const subtotal = Cart.total();
-      const delivery = subtotal >= 50000 ? 0 : 3000;
-      const items = cart.map(item => {
-        const p = PRODUCTS.find(x => x.id === item.id);
-        return { id: item.id, name: p ? p.name : '', qty: item.qty, price: p ? p.price : 0 };
-      });
-
-      const token = localStorage.getItem('hb_token');
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      // 주문 API 호출
-      fetch('/api/orders', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          user_id: user ? user.id : null,
-          guest_name: name,
-          guest_phone: phone,
-          items,
-          total_price: subtotal + delivery,
-          recipient_name: name,
-          recipient_phone: phone,
-          address: `(${postcode}) ${addrMain}`,
-          address_detail: addrDetail,
-          memo
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          localStorage.setItem('hb_cart', '[]');
-          Cart.updateBadge();
-          localStorage.setItem('hb_last_order', data.order_number);
-          showAlert('success', `주문이 완료되었습니다! 주문번호: ${data.order_number}`);
-          renderCheckoutItems();
-        } else {
-          showAlert('error', data.error || '주문에 실패했습니다');
-        }
-      })
-      .catch(() => {
-        showAlert('error', '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-      });
     }
 
     // 택배사 조회 URL
@@ -468,6 +258,9 @@
           container.innerHTML = '<div class="order-history-empty">주문 내역을 불러올 수 없습니다</div>';
         });
     }
+
+    // 페이지 로드 시 주문내역 표시
+    loadOrderHistory();
 
     function showAlert(type, msg) {
       const errEl = document.getElementById('alert-error');

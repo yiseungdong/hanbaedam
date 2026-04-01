@@ -157,6 +157,12 @@
             <label class="form-label">배송 메모</label>
             <textarea class="form-textarea" id="memo" placeholder="부재 시 경비실에 맡겨주세요 등"></textarea>
           </div>
+          <div class="form-row" style="margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-md);cursor:pointer;">
+              <input type="checkbox" id="saveAddress" checked style="accent-color:var(--green);">
+              이 배송지를 저장할게요
+            </label>
+          </div>
         </div>
 
         <!-- 결제 수단 -->
@@ -276,6 +282,36 @@
       el.querySelector('input[type="radio"]').checked = true;
     }
 
+    /* ── 저장된 배송지 자동입력 ── */
+    async function loadSavedAddress() {
+      const token = localStorage.getItem('hb_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/api/user/address', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.saved_address) {
+          document.getElementById('postcode').value = data.saved_zipcode || '';
+          document.getElementById('address').value = data.saved_address || '';
+          document.getElementById('address-detail').value = data.saved_address_detail || '';
+        }
+      } catch(e) { console.error('배송지 불러오기 실패', e); }
+    }
+
+    async function maybeSaveAddress(zipcode, address, addressDetail) {
+      if (!document.getElementById('saveAddress').checked) return;
+      const token = localStorage.getItem('hb_token');
+      if (!token) return;
+      try {
+        await fetch('/api/user/address', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ zipcode, address, address_detail: addressDetail })
+        });
+      } catch(e) { console.error('배송지 저장 실패', e); }
+    }
+
+    loadSavedAddress();
+
     /* ── 다른 사람에게 보내기 토글 ── */
     function toggleRecipient() {
       const checked = document.getElementById('sendToOther').checked;
@@ -307,6 +343,9 @@
 
       const cartItems = Cart.get();
       if (!cartItems.length) { alert('장바구니가 비어있습니다.'); return; }
+
+      // 배송지 저장 (체크박스 체크된 경우)
+      await maybeSaveAddress(postcode, address, addressDetail);
 
       const totalPrice = Cart.total();
       const fullAddress = `(${postcode}) ${address}`;
