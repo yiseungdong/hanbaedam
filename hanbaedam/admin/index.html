@@ -1000,11 +1000,23 @@
   function saveToServer() {
     if (!originalImage) { alert('먼저 사진을 업로드하세요'); return; }
 
+    // 최대 1600px로 리사이즈 (상품 사진으로 충분)
+    const MAX = 1600;
+    let w = originalImage.width;
+    let h = originalImage.height;
+    if (w > MAX || h > MAX) {
+      const ratio = Math.min(MAX / w, MAX / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+    }
+
+    // 원본 비율 그대로 임시 캔버스 생성 (여백 없음)
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = originalImage.width;
-    tempCanvas.height = originalImage.height;
+    tempCanvas.width = w;
+    tempCanvas.height = h;
     const tempCtx = tempCanvas.getContext('2d');
 
+    // 보정 필터 적용 (미리보기와 동일한 공식)
     const s = getSliderValues();
     const b = 1 + s.brightness / 100;
     const co = 1 + s.contrast / 100;
@@ -1012,20 +1024,22 @@
     const se = s.warmth / 200;
     tempCtx.filter = `brightness(${b}) contrast(${co}) saturate(${sa}) sepia(${se})`;
 
-    tempCtx.drawImage(originalImage, 0, 0, originalImage.width, originalImage.height);
+    // 리사이즈된 크기로 꽉 채워 그리기
+    tempCtx.drawImage(originalImage, 0, 0, w, h);
 
+    // 선명도 적용
     if (s.sharpness > 0) {
       tempCtx.filter = 'none';
-      const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+      const imgData = tempCtx.getImageData(0, 0, w, h);
       const sharpened = unsharpMask(imgData, s.sharpness / 100);
       tempCtx.putImageData(sharpened, 0, 0);
     }
 
+    // JPEG 90% 품질로 저장 (PNG보다 파일 크기 대폭 감소)
     tempCanvas.toBlob(blob => {
-      if (!blob) { alert('이미지 변환 실패 - 사진이 너무 클 수 있습니다'); return; }
-      console.log('blob 크기:', blob.size, '원본:', originalImage.width, 'x', originalImage.height);
+      if (!blob) { alert('이미지 변환 실패'); return; }
       const form = new FormData();
-      form.append('image', blob, 'photo_' + Date.now() + '.png');
+      form.append('image', blob, 'photo_' + Date.now() + '.jpg');
       fetch('/api/upload', { method: 'POST', body: form })
         .then(r => {
           if (!r.ok) throw new Error('서버 응답: ' + r.status);
@@ -1033,7 +1047,7 @@
         })
         .then(data => { alert('저장 완료!'); loadPhotos(); })
         .catch(err => alert('저장 실패: ' + err.message));
-    }, 'image/png');
+    }, 'image/jpeg', 0.9);
   }
 
   function loadPhotos() {
