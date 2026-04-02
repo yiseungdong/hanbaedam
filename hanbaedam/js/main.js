@@ -147,13 +147,13 @@ const Cart = {
 function renderProductCard(p) {
   const imgTag = p.image
     ? `<img src="${p.image}" alt="${p.name}"
-        style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;opacity:0;transition:opacity .3s"
+        style="opacity:0;transition:opacity .3s"
         onload="this.style.opacity=1"
         onerror="this.parentElement.style.background='${p.color || '#EEEADF'}';this.style.display='none'">`
     : '';
   return `
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
-      <div style="width:100%;height:220px;overflow:hidden;background:${p.color || '#EEEADF'};border-radius:4px 4px 0 0;position:relative;">
+      <div class="product-card__img" style="background:${p.color || '#EEEADF'}">
         ${imgTag}
         <div class="product-card__badge">${p.badge}</div>
       </div>
