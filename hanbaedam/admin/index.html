@@ -758,6 +758,22 @@
       document.getElementById('f-image-thumb').src = p.image;
       document.getElementById('f-image-preview').style.display = 'block';
     }
+    // 기존 상세 이미지 미리보기
+    detailImageFiles = [];
+    const existingImages = document.getElementById('detail-img-preview');
+    let existingUrls = [];
+    try {
+      existingUrls = Array.isArray(p.detail_images) ? p.detail_images : JSON.parse(p.detail_images || '[]');
+    } catch(e) {}
+    if (existingUrls.length) {
+      existingImages.innerHTML = existingUrls.map(function(url, i) {
+        return '<div style="position:relative;width:80px;height:80px;">' +
+          '<img src="' + url + '" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:0.5px solid var(--gray-lt);">' +
+          '</div>';
+      }).join('');
+    } else {
+      existingImages.innerHTML = '';
+    }
     document.getElementById('add-modal').classList.add('open');
   }
 
@@ -824,6 +840,26 @@
       } catch { alert('사진 업로드 실패'); return; }
     }
 
+    // 상세 이미지 업로드 처리
+    const detailImageUrls = [];
+    // 기존 상세 이미지 URL 유지
+    const existingPreview = document.getElementById('detail-img-preview');
+    if (existingPreview) {
+      existingPreview.querySelectorAll('img').forEach(function(img) {
+        if (img.src && !img.src.startsWith('blob:')) detailImageUrls.push(img.getAttribute('src'));
+      });
+    }
+    // 새 상세 이미지 업로드
+    for (let i = 0; i < detailImageFiles.length; i++) {
+      try {
+        const form = new FormData();
+        form.append('image', detailImageFiles[i]);
+        const res = await fetch('/api/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.url) detailImageUrls.push(data.url);
+      } catch(e) { console.error('상세 이미지 업로드 실패:', e); }
+    }
+
     const productData = {
       name,
       category: document.getElementById('f-cat').value,
@@ -839,7 +875,8 @@
       storage: document.getElementById('f-storage').value,
       expiry: document.getElementById('f-expiry').value,
       producer: document.getElementById('f-producer').value,
-      key_points: document.getElementById('f-keypoints').value
+      key_points: document.getElementById('f-keypoints').value,
+      detail_images: detailImageUrls
     };
 
     try {
@@ -858,6 +895,7 @@
         });
         alert(`"${name}" 등록 완료!\n연동된 채널에 반영 중...`);
       }
+      detailImageFiles = [];
       closeModal();
       showTab('products');
     } catch {
