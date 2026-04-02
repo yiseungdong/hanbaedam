@@ -147,7 +147,7 @@ const Cart = {
 function renderProductCard(p) {
   const imgTag = p.image
     ? `<img src="${p.image}" alt="${p.name}"
-        style="opacity:0;transition:opacity .3s"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transition:opacity .3s"
         onload="this.style.opacity=1"
         onerror="this.parentElement.style.background='${p.color || '#EEEADF'}';this.style.display='none'">`
     : '';
