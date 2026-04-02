@@ -83,6 +83,11 @@ function parseProduct(row) {
     tags: JSON.parse(row.tags || '[]'),
     stock: row.stock,
     image: image,
+    storage: row.storage || '',
+    expiry: row.expiry || '',
+    producer: row.producer || '',
+    key_points: row.key_points || '',
+    detail_images: JSON.parse(row.detail_images || '[]'),
     naver_id: row.naver_id,
     coupang_id: row.coupang_id,
     created_at: row.created_at
@@ -117,12 +122,12 @@ app.get('/api/products/:id', (req, res) => {
 
 app.post('/api/products', (req, res) => {
   const db = getDB();
-  const { name, category, desc, detail, price, unit, badge, color, tags, stock } = req.body;
+  const { name, category, desc, detail, price, unit, badge, color, tags, stock, storage, expiry, producer, key_points, detail_images } = req.body;
   const stmt = db.prepare(`
-    INSERT INTO products (name, category, "desc", detail, price, unit, badge, color, tags, stock)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (name, category, "desc", detail, price, unit, badge, color, tags, stock, storage, expiry, producer, key_points, detail_images)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  stmt.run([name, category, desc, detail, price, unit, badge, color || '#D8D8D0', JSON.stringify(tags || []), stock || 0]);
+  stmt.run([name, category, desc, detail, price, unit, badge, color || '#D8D8D0', JSON.stringify(tags || []), stock || 0, storage || '', expiry || '', producer || '', key_points || '', JSON.stringify(detail_images || [])]);
   stmt.free();
   saveDB();
   const lastId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
@@ -132,11 +137,11 @@ app.post('/api/products', (req, res) => {
 app.put('/api/products/:id', (req, res) => {
   const db = getDB();
   const id = Number(req.params.id);
-  const { name, category, desc, detail, price, unit, badge, color, tags, stock, image } = req.body;
+  const { name, category, desc, detail, price, unit, badge, color, tags, stock, image, storage, expiry, producer, key_points, detail_images } = req.body;
   db.run(`
-    UPDATE products SET name=?, category=?, "desc"=?, detail=?, price=?, unit=?, badge=?, color=?, tags=?, stock=?, image=?
+    UPDATE products SET name=?, category=?, "desc"=?, detail=?, price=?, unit=?, badge=?, color=?, tags=?, stock=?, image=?, storage=?, expiry=?, producer=?, key_points=?, detail_images=?
     WHERE id=?
-  `, [name, category, desc, detail, price, unit, badge, color, JSON.stringify(tags || []), stock, image || null, id]);
+  `, [name, category, desc, detail, price, unit, badge, color, JSON.stringify(tags || []), stock, image || null, storage || '', expiry || '', producer || '', key_points || '', JSON.stringify(detail_images || []), id]);
   saveDB();
   res.json({ message: '상품 수정 완료' });
 });
@@ -146,6 +151,22 @@ app.delete('/api/products/:id', (req, res) => {
   db.run(`DELETE FROM products WHERE id = ${Number(req.params.id)}`);
   saveDB();
   res.json({ message: '상품 삭제 완료' });
+});
+
+app.post('/api/products/:id/detail-images', upload.array('images', 10), (req, res) => {
+  if (!req.files || !req.files.length) return res.status(400).json({ error: '파일이 없습니다' });
+  const urls = req.files.map(f => '/uploads/' + f.filename);
+
+  const db = getDB();
+  const id = Number(req.params.id);
+  const result = db.exec(`SELECT detail_images FROM products WHERE id = ${id}`);
+  let existing = [];
+  try { existing = JSON.parse(result[0].values[0][0] || '[]'); } catch(e) {}
+  const merged = existing.concat(urls);
+
+  db.run('UPDATE products SET detail_images = ? WHERE id = ?', [JSON.stringify(merged), id]);
+  saveDB();
+  res.json({ urls: merged });
 });
 
 // ── 주문 API ──

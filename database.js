@@ -72,6 +72,13 @@ async function initDB() {
   try { db.run('ALTER TABLE orders ADD COLUMN courier TEXT DEFAULT ""'); } catch(e) {}
   try { db.run('ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'); } catch(e) {}
 
+  // products 테이블 상세 필드 추가
+  try { db.exec("ALTER TABLE products ADD COLUMN storage TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE products ADD COLUMN expiry TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE products ADD COLUMN producer TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE products ADD COLUMN key_points TEXT DEFAULT ''"); } catch(e) {}
+  try { db.exec("ALTER TABLE products ADD COLUMN detail_images TEXT DEFAULT '[]'"); } catch(e) {}
+
   // users 테이블 배송지 컬럼 추가
   try { db.run('ALTER TABLE users ADD COLUMN saved_zipcode TEXT DEFAULT ""'); } catch(e) {}
   try { db.run('ALTER TABLE users ADD COLUMN saved_address TEXT DEFAULT ""'); } catch(e) {}
