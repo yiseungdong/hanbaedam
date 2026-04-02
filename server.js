@@ -193,14 +193,14 @@ app.post('/api/orders', (req, res) => {
       return res.status(400).json({ error: (item.name || '알 수 없는') + ' 상품을 찾을 수 없습니다.' });
     }
     const product = rowToObj(result[0].columns, result[0].values)[0];
-    if (product.stock < (item.qty || 1)) {
+    if (product.stock < (item.qty || item.quantity || 1)) {
       return res.status(400).json({ error: product.name + ' 재고가 부족합니다. (남은 수량: ' + product.stock + '개)' });
     }
   }
 
   // 2. 재고 차감
   for (const item of parsedItems) {
-    db.run(`UPDATE products SET stock = stock - ${Number(item.qty || 1)} WHERE id = ${Number(item.id)}`);
+    db.run(`UPDATE products SET stock = stock - ${Number(item.qty || item.quantity || 1)} WHERE id = ${Number(item.id)}`);
   }
 
   // 3. 주문 생성
@@ -258,7 +258,7 @@ app.patch('/api/admin/orders/:id/status', (req, res) => {
       if (order.status !== '취소') {
         const orderItems = JSON.parse(order.items || '[]');
         for (const item of orderItems) {
-          db.run(`UPDATE products SET stock = stock + ${Number(item.qty || 1)} WHERE id = ${Number(item.id)}`);
+          db.run(`UPDATE products SET stock = stock + ${Number(item.qty || item.quantity || 1)} WHERE id = ${Number(item.id)}`);
         }
       }
     }

@@ -1398,7 +1398,7 @@
     if (!orders.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">주문 없음</td></tr>'; return; }
     tbody.innerHTML = orders.map(o => {
       const items = Array.isArray(o.items) ? o.items : [];
-      const itemSummary = items.length ? `${items[0].name || '상품'}${items.length > 1 ? ' 외 ' + (items.length-1) + '건' : ''}` : '-';
+      const itemSummary = items.length ? items.map(function(i) { return i.name + ' ' + (i.qty || i.quantity || 1) + '개'; }).join(', ') : '-';
       const orderDate = o.created_at ? new Date(o.created_at).toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
       return `<tr>
         <td><a href="#" onclick="openOrderModal(${o.id});return false;" style="color:var(--green);font-weight:500;">${o.order_number}</a></td>
@@ -1441,7 +1441,7 @@
     const o = allOrdersCache.find(x => x.id === orderId);
     if (!o) return;
     const items = Array.isArray(o.items) ? o.items : [];
-    const itemsHtml = items.map(i => `<tr><td style="padding:6px 8px;">${i.name || '-'}</td><td style="padding:6px 8px;">${i.qty || 1}개</td><td style="padding:6px 8px;">${(i.price || 0).toLocaleString()}원</td></tr>`).join('');
+    const itemsHtml = items.map(i => `<tr><td style="padding:6px 8px;">${i.name || '-'}</td><td style="padding:6px 8px;">${i.qty || i.quantity || 1}개</td><td style="padding:6px 8px;">${(i.price || 0).toLocaleString()}원</td></tr>`).join('');
     document.getElementById('orderModalContent').innerHTML = `
       <div style="margin-bottom:16px;font-size:13px;line-height:1.8;">
         <b>주문번호:</b> ${o.order_number}<br>

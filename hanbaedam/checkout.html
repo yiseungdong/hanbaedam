@@ -355,14 +355,14 @@
             id: c.id,
             name: p ? p.name : '상품',
             price: p ? p.price : 0,
-            quantity: c.qty || 1
+            qty: c.qty || 1
           };
         });
       } catch {
-        enrichedItems = cartItems.map(c => ({ id: c.id, name: '상품', price: 0, quantity: c.qty || 1 }));
+        enrichedItems = cartItems.map(c => ({ id: c.id, name: '상품', price: 0, qty: c.qty || 1 }));
       }
 
-      const totalPrice = enrichedItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+      const totalPrice = enrichedItems.reduce((s, i) => s + (i.price * i.qty), 0);
 
       // 배송지 저장 (체크박스 체크된 경우)
       await maybeSaveAddress(postcode, address, addressDetail);
