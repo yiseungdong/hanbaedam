@@ -71,6 +71,10 @@ async function initDB() {
   try { db.run('ALTER TABLE orders ADD COLUMN admin_memo TEXT DEFAULT ""'); } catch(e) {}
   try { db.run('ALTER TABLE orders ADD COLUMN courier TEXT DEFAULT ""'); } catch(e) {}
   try { db.run('ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN guest_email TEXT'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN zipcode TEXT DEFAULT ""'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN delivery_fee INTEGER DEFAULT 0'); } catch(e) {}
+  try { db.run('ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT "일반결제"'); } catch(e) {}
 
   // products 테이블 상세 필드 추가
   try { db.exec("ALTER TABLE products ADD COLUMN storage TEXT DEFAULT ''"); } catch(e) {}

@@ -169,29 +169,50 @@ app.post('/api/products/:id/detail-images', upload.array('images', 10), (req, re
   res.json({ urls: merged });
 });
 
+// [재고 부족 상품 조회]
+app.get('/api/products/low-stock', (req, res) => {
+  const db = getDB();
+  const threshold = parseInt(req.query.threshold) || 5;
+  const result = db.exec(`SELECT id, name, stock, category, badge FROM products WHERE stock <= ${threshold} ORDER BY stock ASC`);
+  if (!result.length) return res.json([]);
+  res.json(rowToObj(result[0].columns, result[0].values));
+});
+
 // ── 주문 API ──
 
-// [1] 주문 생성
+// [1] 주문 생성 (재고 확인 + 차감)
 app.post('/api/orders', (req, res) => {
   const db = getDB();
-  const { user_id, guest_name, guest_phone, items, total_price, recipient_name, recipient_phone, address, address_detail, memo } = req.body;
-  const now = new Date();
-  const dateStr = now.getFullYear().toString().slice(2) + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-  const rand = Math.floor(1000 + Math.random() * 9000);
-  const order_number = `HBD${dateStr}${rand}`;
-  const itemsJson = typeof items === 'string' ? items : JSON.stringify(items);
-  try {
-    const stmt = db.prepare(
-      `INSERT INTO orders (order_number, user_id, guest_name, guest_phone, items, total_price, recipient_name, recipient_phone, address, address_detail, memo) VALUES (?,?,?,?,?,?,?,?,?,?,?)`
-    );
-    stmt.run([order_number, user_id||null, guest_name||null, guest_phone||null, itemsJson, total_price, recipient_name, recipient_phone, address, address_detail||'', memo||'']);
-    stmt.free();
-    saveDB();
-    const lastId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
-    res.json({ success: true, order_number, order_id: lastId });
-  } catch(err) {
-    res.status(500).json({ error: '주문 저장 실패' });
+  const { guest_name, guest_phone, guest_email, recipient_name, recipient_phone, address, address_detail, zipcode, items, total_price, delivery_fee, memo, payment_method } = req.body;
+
+  // 1. 재고 확인
+  const parsedItems = Array.isArray(items) ? items : JSON.parse(items || '[]');
+  for (const item of parsedItems) {
+    const result = db.exec(`SELECT id, name, stock FROM products WHERE id = ${Number(item.id)}`);
+    if (!result.length || !result[0].values.length) {
+      return res.status(400).json({ error: (item.name || '알 수 없는') + ' 상품을 찾을 수 없습니다.' });
+    }
+    const product = rowToObj(result[0].columns, result[0].values)[0];
+    if (product.stock < (item.qty || 1)) {
+      return res.status(400).json({ error: product.name + ' 재고가 부족합니다. (남은 수량: ' + product.stock + '개)' });
+    }
   }
+
+  // 2. 재고 차감
+  for (const item of parsedItems) {
+    db.run(`UPDATE products SET stock = stock - ${Number(item.qty || 1)} WHERE id = ${Number(item.id)}`);
+  }
+
+  // 3. 주문 생성
+  const orderNumber = 'HBD' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+  const stmt = db.prepare(`INSERT INTO orders (order_number, guest_name, guest_phone, guest_email, recipient_name, recipient_phone, address, address_detail, zipcode, items, total_price, delivery_fee, memo, payment_method, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '결제완료', datetime('now', '+9 hours'))`);
+  stmt.run([orderNumber, guest_name, guest_phone, guest_email || null, recipient_name, recipient_phone, address, address_detail || '', zipcode || '', JSON.stringify(parsedItems), total_price, delivery_fee || 0, memo || '', payment_method || '일반결제']);
+  stmt.free();
+
+  saveDB();
+  res.json({ success: true, order_number: orderNumber });
 });
 
 // [2] 어드민 전체 주문 목록
@@ -218,17 +239,33 @@ app.get('/api/admin/orders', (req, res) => {
   res.json(orders);
 });
 
-// [3] 주문 상태 변경
+// [3] 주문 상태 변경 (취소 시 재고 복원)
 app.patch('/api/admin/orders/:id/status', (req, res) => {
   const db = getDB();
+  const orderId = Number(req.params.id);
   const { status, admin_memo } = req.body;
   const fields = [];
   const vals = [];
   if (status) { fields.push('status=?'); vals.push(status); }
   if (admin_memo !== undefined) { fields.push('admin_memo=?'); vals.push(admin_memo); }
   if (!fields.length) return res.status(400).json({ error: '수정할 항목이 없습니다' });
+
+  // 취소 시 재고 복원
+  if (status === '취소') {
+    const orderResult = db.exec(`SELECT items, status FROM orders WHERE id = ${orderId}`);
+    if (orderResult.length && orderResult[0].values.length) {
+      const order = rowToObj(orderResult[0].columns, orderResult[0].values)[0];
+      if (order.status !== '취소') {
+        const orderItems = JSON.parse(order.items || '[]');
+        for (const item of orderItems) {
+          db.run(`UPDATE products SET stock = stock + ${Number(item.qty || 1)} WHERE id = ${Number(item.id)}`);
+        }
+      }
+    }
+  }
+
   fields.push("updated_at=CURRENT_TIMESTAMP");
-  vals.push(Number(req.params.id));
+  vals.push(orderId);
   db.run(`UPDATE orders SET ${fields.join(',')} WHERE id=?`, vals);
   saveDB();
   res.json({ success: true });

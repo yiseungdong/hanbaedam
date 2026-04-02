@@ -655,6 +655,36 @@
         <td><span class="badge badge--on">연동</span></td>
         <td><span class="badge badge--off">미연동</span></td>
       </tr>`).join('');
+
+    // 재고 부족 경고 로드
+    fetch('/api/products/low-stock?threshold=5')
+      .then(r => r.json())
+      .then(products => {
+        let alertDiv = document.getElementById('stock-alert');
+        if (!alertDiv) {
+          alertDiv = document.createElement('div');
+          alertDiv.id = 'stock-alert';
+          const statsGrid = document.querySelector('.stats-grid');
+          if (statsGrid) statsGrid.parentNode.insertBefore(alertDiv, statsGrid.nextSibling);
+        }
+        if (!products.length) {
+          alertDiv.innerHTML = '';
+          return;
+        }
+        alertDiv.innerHTML = '<div class="table-card" style="margin-bottom:28px;border:1px solid #F09595;">' +
+          '<div class="table-card__header" style="background:#FFF0F0;">' +
+          '<div class="table-card__title" style="color:#A32D2D;">⚠️ 재고 부족 경고</div>' +
+          '</div>' +
+          '<table><thead><tr><th>상품명</th><th>카테고리</th><th>남은 재고</th><th>상태</th></tr></thead><tbody>' +
+          products.map(function(p) {
+            var statusBadge = p.stock <= 0
+              ? '<span class="badge" style="background:#FFE0E0;color:#A32D2D;">품절</span>'
+              : '<span class="badge" style="background:#FAEEDA;color:#633806;">부족</span>';
+            return '<tr><td style="font-weight:500;">' + p.name + '</td><td>' + (p.category || '-') + '</td><td style="color:#A32D2D;font-weight:500;">' + p.stock + '개</td><td>' + statusBadge + '</td></tr>';
+          }).join('') +
+          '</tbody></table></div>';
+      })
+      .catch(function() {});
   }
 
   function renderProductsTable() {

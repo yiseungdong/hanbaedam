@@ -155,7 +155,8 @@ function renderProductCard(p) {
     <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'">
       <div style="width:100%;height:220px;overflow:hidden;background:${p.color || '#EEEADF'};border-radius:4px 4px 0 0;position:relative;">
         ${imgTag}
-        <div class="product-card__badge">${p.badge}</div>
+        <div class="product-card__badge">${p.stock <= 0 ? '품절' : p.badge}</div>
+        ${p.stock <= 0 ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;border-radius:4px 4px 0 0;"><span style="color:#fff;font-size:16px;font-weight:500;letter-spacing:0.1em;">SOLD OUT</span></div>' : ''}
       </div>
       <div class="product-card__name">${p.name}</div>
       <div class="product-card__desc">${p.desc}</div>

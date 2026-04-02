@@ -317,6 +317,12 @@
         <div class="info-row"><dt>재고</dt><dd>${p.stock > 0 ? `${p.stock}개 남음` : '품절'}</dd></div>
       `;
 
+      // 품절 처리
+      if (p.stock <= 0) {
+        document.querySelector('.qty-row').style.display = 'none';
+        document.querySelector('.detail__btns').innerHTML = '<button class="btn" style="flex:1;text-align:center;padding:14px;background:var(--gray-lt);color:var(--gray);cursor:not-allowed;border:none;border-radius:2px;font-size:14px;letter-spacing:0.08em;" disabled>품절된 상품입니다</button>';
+      }
+
       // 핵심 포인트
       var points;
       if (p.key_points && p.key_points.trim()) {
@@ -378,14 +384,14 @@
     }
 
     function addToCart() {
-      if (!p) return;
+      if (!p || p.stock <= 0) { alert('품절된 상품입니다'); return; }
       const qty = parseInt(document.getElementById('qty').value);
       Cart.add(p.id, qty);
       alert(`장바구니에 ${qty}개 담았습니다.`);
     }
 
     function buyNow() {
-      if (!p) return;
+      if (!p || p.stock <= 0) { alert('품절된 상품입니다'); return; }
       addToCart();
       location.href = 'cart.html';
     }
