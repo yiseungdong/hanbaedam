@@ -999,25 +999,21 @@
 
   function saveToServer() {
     if (!originalImage) { alert('먼저 사진을 업로드하세요'); return; }
-    const s = getSliderValues();
-    const b = 1 + s.brightness / 100;
-    const co = 1 + s.contrast / 100;
-    const sa = s.saturation >= 0 ? 1 + s.saturation / 100 : 1 + s.saturation / 200;
-    const se = s.warmth / 100;
 
-    // 원본 크기 임시 캔버스 생성
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = originalImage.width;
     tempCanvas.height = originalImage.height;
     const tempCtx = tempCanvas.getContext('2d');
 
-    // CSS 필터 적용
+    const s = getSliderValues();
+    const b = 1 + s.brightness / 100;
+    const co = 1 + s.contrast / 100;
+    const sa = 1 + s.saturation / 100;
+    const se = s.warmth / 200;
     tempCtx.filter = `brightness(${b}) contrast(${co}) saturate(${sa}) sepia(${se})`;
 
-    // 원본 크기 그대로 그리기 (여백 없음)
     tempCtx.drawImage(originalImage, 0, 0, originalImage.width, originalImage.height);
 
-    // 선명도 적용
     if (s.sharpness > 0) {
       tempCtx.filter = 'none';
       const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
@@ -1025,17 +1021,18 @@
       tempCtx.putImageData(sharpened, 0, 0);
     }
 
-    // 임시 캔버스에서 저장
     tempCanvas.toBlob(blob => {
+      if (!blob) { alert('이미지 변환 실패 - 사진이 너무 클 수 있습니다'); return; }
+      console.log('blob 크기:', blob.size, '원본:', originalImage.width, 'x', originalImage.height);
       const form = new FormData();
       form.append('image', blob, 'photo_' + Date.now() + '.png');
       fetch('/api/upload', { method: 'POST', body: form })
-        .then(r => r.json())
-        .then(data => {
-          alert('저장 완료!');
-          loadPhotos();
+        .then(r => {
+          if (!r.ok) throw new Error('서버 응답: ' + r.status);
+          return r.json();
         })
-        .catch(() => alert('저장 실패'));
+        .then(data => { alert('저장 완료!'); loadPhotos(); })
+        .catch(err => alert('저장 실패: ' + err.message));
     }, 'image/png');
   }
 
