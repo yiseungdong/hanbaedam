@@ -85,6 +85,26 @@
     .img-preview { width: 80px; height: 80px; border-radius: var(--radius); object-fit: cover; position: relative; }
     .img-preview-wrap { position: relative; }
     .img-preview-wrap .img-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: var(--dark); color: #fff; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    /* 상세 탭 */
+    .detail-tabs { border-top: 0.5px solid var(--gray-lt); margin-top: 8px; }
+    .detail-tabs__nav { display: flex; border-bottom: 0.5px solid var(--gray-lt); }
+    .detail-tabs__btn {
+      flex: 1; padding: 16px 0; text-align: center; font-size: 14px; font-weight: 400;
+      color: var(--gray); background: transparent; border: none; cursor: pointer;
+      font-family: var(--sans); letter-spacing: 0.04em; transition: all .2s;
+      border-bottom: 2px solid transparent;
+    }
+    .detail-tabs__btn.active { color: var(--green); border-bottom-color: var(--green); font-weight: 500; }
+    .detail-tabs__btn:hover { color: var(--text-md); }
+    .detail-tab-content { display: none; padding: 40px 0; }
+    .detail-tab-content.active { display: block; }
+    .detail-tab-content h3 { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-bottom: 20px; color: var(--text); }
+    .detail-tab-content p { font-size: 14px; color: var(--text-md); line-height: 2.0; font-weight: 300; margin-bottom: 16px; }
+    .detail-tab-content .detail-images img { width: 100%; max-width: 700px; border-radius: var(--radius); margin-bottom: 16px; }
+    .detail-tab-content table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .detail-tab-content table th { padding: 12px 16px; text-align: left; background: var(--bg2); color: var(--gray); font-weight: 400; border-bottom: 0.5px solid var(--gray-lt); width: 120px; }
+    .detail-tab-content table td { padding: 12px 16px; color: var(--text-md); font-weight: 300; border-bottom: 0.5px solid var(--gray-lt); line-height: 1.8; }
   </style>
 </head>
 <body>
@@ -132,6 +152,43 @@
         </div>
 
         <dl class="detail__info" id="detail-info"></dl>
+      </div>
+    </div>
+
+    <!-- 상세 탭 -->
+    <div class="detail-tabs">
+      <div class="detail-tabs__nav">
+        <button class="detail-tabs__btn active" data-tab="tab-detail" onclick="switchTab(this)">상세설명</button>
+        <button class="detail-tabs__btn" data-tab="tab-shipping" onclick="switchTab(this)">배송안내</button>
+        <button class="detail-tabs__btn" data-tab="tab-exchange" onclick="switchTab(this)">교환·환불</button>
+      </div>
+
+      <div class="detail-tab-content active" id="tab-detail">
+        <div id="detail-long-desc"></div>
+        <div class="detail-images" id="detail-extra-images"></div>
+      </div>
+
+      <div class="detail-tab-content" id="tab-shipping">
+        <h3>배송 안내</h3>
+        <table>
+          <tr><th>배송 방법</th><td>택배 (CJ대한통운 / 우체국택배)</td></tr>
+          <tr><th>배송 지역</th><td>전국 배송 가능</td></tr>
+          <tr><th>배송 기간</th><td>주문 확인 후 1~2일 이내 출고 (주말·공휴일 제외)<br>도서산간 지역은 1~2일 추가 소요될 수 있습니다</td></tr>
+          <tr><th>배송비</th><td>3,000원 (50,000원 이상 무료배송)<br>제주 및 도서산간 지역 추가 3,000원</td></tr>
+          <tr><th>출고지</th><td>강원특별자치도 홍천군</td></tr>
+        </table>
+        <p style="margin-top:16px;font-size:12px;color:var(--gray);">※ 신선식품 특성상 출고 후 교환·반품이 어려울 수 있습니다.</p>
+      </div>
+
+      <div class="detail-tab-content" id="tab-exchange">
+        <h3>교환·환불 안내</h3>
+        <table>
+          <tr><th>교환·반품 기한</th><td>수령일로부터 7일 이내</td></tr>
+          <tr><th>교환·반품 비용</th><td>단순 변심: 왕복 배송비 고객 부담 (6,000원)<br>상품 불량·오배송: 무료</td></tr>
+          <tr><th>교환·반품 불가</th><td>· 수령 후 7일 초과<br>· 포장 개봉 또는 훼손된 경우<br>· 신선식품의 단순 변심 (냉장·냉동 상품)</td></tr>
+          <tr><th>환불 방법</th><td>반품 확인 후 2~3영업일 이내 결제수단으로 환불</td></tr>
+          <tr><th>문의</th><td>카카오채널 @한백담 또는 고객센터</td></tr>
+        </table>
       </div>
     </div>
 
@@ -234,6 +291,21 @@
         <div class="info-row"><dt>배송</dt><dd>주문 후 1~2일 이내 홍천 직배송</dd></div>
         <div class="info-row"><dt>재고</dt><dd>${p.stock > 0 ? `${p.stock}개 남음` : '품절'}</dd></div>
       `;
+
+      // 상세설명 탭 내용 채우기
+      const longDesc = document.getElementById('detail-long-desc');
+      if (p.detail) {
+        longDesc.innerHTML = '<h3>' + p.name + '</h3>' + p.detail.split('\n').map(line => '<p>' + line + '</p>').join('');
+      } else {
+        longDesc.innerHTML = '<p style="color:var(--gray);">상세 설명이 준비 중입니다.</p>';
+      }
+    }
+
+    function switchTab(btn) {
+      document.querySelectorAll('.detail-tabs__btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
     }
 
     // 서버 API에서 상품 가져오기, 실패 시 로컬 데이터 사용

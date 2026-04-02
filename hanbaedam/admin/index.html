@@ -131,6 +131,28 @@
     .status-취소     { background:#FDEDEC; color:#A32D2D; }
 
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .channel-grid { grid-template-columns: 1fr 1fr; } .slider-grid { grid-template-columns: 1fr; } }
+
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(42, 92, 63, 0.92);
+      color: #F6F2EA;
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: var(--sans);
+      z-index: 9999;
+      pointer-events: none;
+      animation: toastFade 1.5s ease forwards;
+    }
+    @keyframes toastFade {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+      15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -998,7 +1020,7 @@
   }
 
   function saveToServer() {
-    if (!originalImage) { alert('먼저 사진을 업로드하세요'); return; }
+    if (!originalImage) { showToast('먼저 사진을 업로드하세요'); return; }
 
     // 최대 1600px로 리사이즈 (상품 사진으로 충분)
     const MAX = 1600;
@@ -1037,7 +1059,7 @@
 
     // JPEG 90% 품질로 저장 (PNG보다 파일 크기 대폭 감소)
     tempCanvas.toBlob(blob => {
-      if (!blob) { alert('이미지 변환 실패'); return; }
+      if (!blob) { showToast('이미지 변환 실패'); return; }
       const form = new FormData();
       form.append('image', blob, 'photo_' + Date.now() + '.jpg');
       fetch('/api/upload', { method: 'POST', body: form })
@@ -1045,8 +1067,8 @@
           if (!r.ok) throw new Error('서버 응답: ' + r.status);
           return r.json();
         })
-        .then(data => { alert('저장 완료!'); loadPhotos(); })
-        .catch(err => alert('저장 실패: ' + err.message));
+        .then(data => { showToast('저장 완료'); loadPhotos(); })
+        .catch(err => showToast('저장 실패: ' + err.message));
     }, 'image/jpeg', 0.9);
   }
 
@@ -1350,6 +1372,15 @@
     updateGiftSeasonBadge();
   });
   loadStats();
+</script>
+<script>
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
 </script>
 </body>
 </html>
